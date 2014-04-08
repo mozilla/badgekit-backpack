@@ -26,7 +26,15 @@ Example Response:
 ```
 
 ## PUT /user/<userId>
-Update keys associated with a user.
+Update keys associated with a user. Set a parameter to `null` to delete that key.
+
+Example Request:
+
+```json
+{ "age": 16, "city": "Chicago", "neighborhood": null }
+```
+
+This would set new values for `age` and `city`, and delete the `neighborhood` key and its associated value.
 
 ## DELETE /user/<userId>
 Delete all data related to a user.

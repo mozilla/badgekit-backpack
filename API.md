@@ -2,7 +2,7 @@
 All requests require an `Authorization` header, <a href="#auth">see the Authorization section below</a>
 
 ## POST /user
-Create a new user. Supports storing arbitrary keys. Values for keys are stored as utf8, so if binary data needs to be stored, it should be passed as base64 and decoded by the client.
+Create a new user. Supports storing arbitrary keys. Values for keys are stored as and passed back as utf8 strings, so encode any data as necessary and decode in the client (e.g., binary data should be passed as base64, complex data structures as JSON, possibly base64 encoded JSON if the complex structure needs to contain binary data)
 
 * userId
 * <keyOne>

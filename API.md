@@ -1,35 +1,62 @@
 # Routes
 All requests require an `Authorization` header, <a href="#auth">see the Authorization section below</a>
 
-## DELETE /<userId>
+## POST /user
+Create a new user. Supports storing arbitrary keys. Values for keys are stored as utf8, so if binary data needs to be stored, it should be passed as base64 and decoded by the client.
+
+* userId
+* <keyOne>
+* <keyTwo>
+* ...
+* <keyN>
+
+## GET /user/<userId>
+Get information about a user.
+
+Example Response:
+
+```json
+{
+  "user": "brian@mozillafoundation.org",
+  "extra": {
+    "keyOne": "value for keyOne",
+    "keyTwo": "dmFsdWUgZm9yIGtleVR3bwo=",
+  }
+}
+```
+
+## PUT /user/<userId>
+Update keys associated with a user.
+
+## DELETE /user/<userId>
 Delete all data related to a user.
 
-## POST /<userId>/badges
+## POST /user/<userId>/badges
 Adds a badge to the user's list of badges.
 
 **Params**:
 * assertionUrl
 * assertionSignature
 
-## GET /<userId>/badges
+## GET /user/<userId>/badges
 Gets list of badges for a user. We'll probably want pagination on this eventually, but for now it should return all badges.
 
-## GET /<userId>/badges/<badgeId>
+## GET /user/<userId>/badges/<badgeId>
 Get a specific badge for a specific user.
 
-## DELETE /<userId>/badges/<badgeId>
+## DELETE /user/<userId>/badges/<badgeId>
 Remove a badge from the user's account
 
-## POST /<userId>/evidence
+## POST /user/<userId>/evidence
 Add a new piece of evidence. Note this is unassociated with a badge. `data` must be an image (jpg, gif, png, svg)  and is limited to 2mb(?). Request can be multipart or `application/json` with `data` base64 encoded.
 
 * userId
 * data
 
-## GET /<userId>/evidence/<evidenceId>
+## GET /user/<userId>/evidence/<evidenceId>
 Get a specific piece of evidence. This will be served with the `Content-Type` that corresponds the data passed in.
 
-## DELETE /<userId>/evidence/<evidenceId>
+## DELETE /user/<userId>/evidence/<evidenceId>
 Delete a piece of evidence associated with a user.
 
 # Authorization

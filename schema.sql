@@ -46,8 +46,9 @@ CREATE TABLE `earnerBadges` (
   `earnerId` INT NOT NULL REFERENCES `earners`(`id`),
   `badgeClassId` INT NOT NULL REFERENCES `badgeClasses`(`id`),
   `uid` VARCHAR(255) NOT NULL,
-  `badgeUrl` TEXT NOT NULL,
+  `badgeJSONUrl` TEXT NOT NULL,
   `evidenceUrl` TEXT,
+  `imageUrl` LONGTEXT,
   `issuedOn` TIMESTAMP,
   `expires` TIMESTAMP,
   PRIMARY KEY (`id`)
@@ -61,9 +62,9 @@ CREATE TABLE `badgeClasses` (
   `issuerOrgId` INT NOT NULL REFERENCES `issuerOrgs`(`id`),
   `name` VARCHAR(255) NOT NULL,
   `description` VARCHAR(255) NOT NULL,
-  `image` LONGTEXT NOT NULL,
-  `criteria` VARCHAR(255) NOT NULL,
-  `issuer` VARCHAR(255) NOT NULL,
+  `imageUrl` LONGTEXT NOT NULL,
+  `criteriaUrl` VARCHAR(255) NOT NULL,
+  `issuerJSONUrl` VARCHAR(255) NOT NULL,
   PRIMARY KEY (`id`)
 ) CHARACTER SET utf8
   ENGINE=InnoDB;
@@ -75,7 +76,7 @@ CREATE TABLE `issuerOrgs` (
   `name` VARCHAR(255) NOT NULL,
   `url` TEXT,
   `description` VARCHAR(255),
-  `image` LONGTEXT,
+  `imageUrl` LONGTEXT,
   `email` VARCHAR(255),
   `revocationList` TEXT,
   PRIMARY KEY (`id`)

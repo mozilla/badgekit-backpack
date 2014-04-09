@@ -1,0 +1,29 @@
+{
+  "name": "BackpackClient",
+  "version": "0.0.0",
+  "description": "An example client application for the badgekit backpack API",
+  "main": "gulpfile.js",
+  "dependencies": {},
+  "devDependencies": {
+    "gulp": "~3.6.0",
+    "gulp-sass": "~0.7.1",
+    "gulp-util": "~2.2.14",
+    "gulp-uglify": "~0.2.1",
+    "gulp-concat": "~2.2.0",
+    "gulp-define-module": "~0.1.0",
+    "gulp-handlebars": "~2.0.0",
+    "gulp-declare": "~0.2.0",
+    "connect": "~2.14.4"
+  },
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:mozilla/badgekit-backpack.git"
+  },
+  "author": "Dayton Nolan",
+  "license": "MPLv2",
+  "bugs": {
+    "url": "https://github.com/mozilla/badgekit-backpack/issues"
+  },
+  "homepage": "https://github.com/mozilla/badgekit-backpack"
+}

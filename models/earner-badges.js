@@ -2,7 +2,8 @@ const db = require('../lib/db')
 const EarnerBadges = db.table('earnerBadges', {
   fields: [
     'id',
-    'jsonId',
+    'createdOn',
+    'jsonUrl',
     'earnerId',
     'badgeClassId',
     'uid',
@@ -20,8 +21,8 @@ const EarnerBadges = db.table('earnerBadges', {
     },
     json: {
       type: 'hasOne',
-      local: 'jsonId',
-      foreign: { table: 'json', key: 'id' },
+      local: 'jsonUrl',
+      foreign: { table: 'json', key: 'url' },
     },
     badgeClass: {
       type: 'hasOne',

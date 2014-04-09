@@ -2,7 +2,8 @@ const db = require('../lib/db')
 const IssuerOrgs = db.table('issuerOrgs', {
   fields: [
     'id',
-    'jsonId',
+    'createdOn',
+    'jsonUrl',
     'name',
     'url',
     'description',
@@ -13,8 +14,8 @@ const IssuerOrgs = db.table('issuerOrgs', {
   relationships: {
     json: {
       type: 'hasOne',
-      local: 'jsonId',
-      foreign: { table: 'json', key: 'id' },
+      local: 'jsonUrl',
+      foreign: { table: 'json', key: 'url' },
     },
   },
 })

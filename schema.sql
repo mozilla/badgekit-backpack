@@ -1,5 +1,10 @@
--- Is there any other mandatory data that should go along with earners?
+DROP TABLE IF EXISTS `earnerBadges`;
+DROP TABLE IF EXISTS `badgeClasses`;
+DROP TABLE IF EXISTS `issuerOrgs`;
+DROP TABLE IF EXISTS `json`;
+DROP TABLE IF EXISTS `earnerData`;
 DROP TABLE IF EXISTS `earners`;
+
 CREATE TABLE `earners` (
   `id` VARCHAR(255) NOT NULL,
   `createdOn` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -12,14 +17,18 @@ CREATE TABLE `earners` (
 -- JSON into the database but that limits our ability to do performant
 -- analysis –– we end up having to pull every row and do things in the
 -- app rather than being able to take advantage of the SQL layer.
-DROP TABLE IF EXISTS `earnerData`;
 CREATE TABLE `earnerData` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `createdOn` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `earnerId` INT NOT NULL REFERENCES `earners`(`id`),
+  `earnerId` VARCHAR(255) NOT NULL,
   `key` VARCHAR(255) NOT NULL,
-  `value` LONGBLOB,
-  UNIQUE KEY `earner_and_key` (`earnerId`, `key`),
+  `value` LONGTEXT,
+
+  UNIQUE KEY (`earnerId`, `key`),
+  FOREIGN KEY (`earnerId`)
+    REFERENCES `earners`(`id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
   PRIMARY KEY (`id`)
 ) CHARACTER SET utf8
   ENGINE=InnoDB;
@@ -30,61 +39,74 @@ CREATE TABLE `earnerData` (
 -- when badges are coming from the same source. Storing the canonical
 -- badge data will also make migrations easier if we decide to support
 -- more of the badge properties.
-DROP TABLE IF EXISTS `json`;
 CREATE TABLE `json` (
-  `id` INT NOT NULL AUTO_INCREMENT,
-  `createdOn` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `url` VARCHAR(255),
   `data` LONGTEXT NOT NULL,
-  `url` TEXT,
   `updatedOn` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`url`)
 ) CHARACTER SET utf8
   ENGINE=InnoDB;
 
--- AKA assertions
-DROP TABLE IF EXISTS `earnerBadges`;
-CREATE TABLE `earnerBadges` (
+CREATE TABLE `issuerOrgs` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `createdOn` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `jsonId` INT NOT NULL REFERENCES `json`(`id`),
-  `earnerId` INT NOT NULL REFERENCES `earners`(`id`),
-  `badgeClassId` INT NOT NULL REFERENCES `badgeClasses`(`id`),
-  `uid` VARCHAR(255) NOT NULL,
-  `badgeJSONUrl` TEXT NOT NULL,
-  `evidenceUrl` TEXT,
+  `jsonUrl` VARCHAR(255) NOT NULL,
+  `name` VARCHAR(255) NOT NULL,
+  `url` VARCHAR(255) NOT NULL,
+  `description` VARCHAR(255),
   `imageUrl` LONGTEXT,
-  `issuedOn` TIMESTAMP,
-  `expires` TIMESTAMP,
-  PRIMARY KEY (`id`)
+  `email` VARCHAR(255),
+  `revocationList` VARCHAR(255),
+  PRIMARY KEY (`id`),
+  FOREIGN KEY (`jsonUrl`)
+    REFERENCES `json`(`url`)
+    ON UPDATE CASCADE
 ) CHARACTER SET utf8
   ENGINE=InnoDB;
 
-DROP TABLE IF EXISTS `badgeClasses`;
 CREATE TABLE `badgeClasses` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `createdOn` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `jsonId` INT NOT NULL REFERENCES `json`(`id`),
-  `issuerOrgId` INT NOT NULL REFERENCES `issuerOrgs`(`id`),
+  `jsonUrl` VARCHAR(255) NOT NULL,
+  `issuerOrgId` INT NOT NULL,
   `name` VARCHAR(255) NOT NULL,
   `description` VARCHAR(255) NOT NULL,
   `imageUrl` LONGTEXT NOT NULL,
   `criteriaUrl` VARCHAR(255) NOT NULL,
   `issuerJSONUrl` VARCHAR(255) NOT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  FOREIGN KEY (`jsonUrl`)
+    REFERENCES `json`(`url`)
+    ON UPDATE CASCADE,
+  FOREIGN KEY (`issuerOrgId`)
+    REFERENCES `issuerOrgs`(`id`)
+    ON UPDATE CASCADE
 ) CHARACTER SET utf8
   ENGINE=InnoDB;
 
-DROP TABLE IF EXISTS `issuerOrgs`;
-CREATE TABLE `issuerOrgs` (
+-- AKA assertions
+CREATE TABLE `earnerBadges` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `createdOn` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `jsonId` INT NOT NULL REFERENCES `json`(`id`),
-  `name` VARCHAR(255) NOT NULL,
-  `url` TEXT,
-  `description` VARCHAR(255),
+  `jsonUrl` VARCHAR(255) NOT NULL,
+  `earnerId` VARCHAR(255) NOT NULL,
+  `badgeClassId` INT NOT NULL,
+  `uid` VARCHAR(255) NOT NULL,
+  `badgeJSONUrl` VARCHAR(255) NOT NULL,
+  `evidenceUrl` VARCHAR(255),
   `imageUrl` LONGTEXT,
-  `email` VARCHAR(255),
-  `revocationList` TEXT,
-  PRIMARY KEY (`id`)
+  `issuedOn` TIMESTAMP,
+  `expires` TIMESTAMP,
+  PRIMARY KEY (`id`),
+  FOREIGN KEY (`earnerId`)
+    REFERENCES `earners`(`id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+  FOREIGN KEY (`jsonUrl`)
+    REFERENCES `json`(`url`)
+    ON UPDATE CASCADE,
+  FOREIGN KEY (`badgeClassId`)
+    REFERENCES `badgeClasses`(`id`)
+    ON UPDATE CASCADE
 ) CHARACTER SET utf8
   ENGINE=InnoDB;

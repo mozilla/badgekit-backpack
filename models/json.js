@@ -1,23 +1,24 @@
 const db = require('../lib/db')
 const JSON = db.table('json', {
-  fields: [ 'id', 'data', 'url', 'updatedOn' ],
+  primaryKey: 'url',
+  fields: [ 'url', 'data', 'updatedOn' ],
   relationships: {
     assertion: {
       type: 'hasOne',
-      local: 'id',
-      foreign: { table: 'earnerBadges', key: 'jsonId' },
+      local: 'url',
+      foreign: { table: 'earnerBadges', key: 'jsonUrl' },
       optional: true,
     },
     badge: {
       type: 'hasOne',
-      local: 'id',
-      foreign: { table: 'earnerBadges', key: 'jsonId' },
+      local: 'url',
+      foreign: { table: 'earnerBadges', key: 'jsonUrl' },
       optional: true,
     },
     issuer: {
       type: 'hasOne',
-      local: 'id',
-      foreign: { table: 'earnerBadges', key: 'jsonId' },
+      local: 'url',
+      foreign: { table: 'earnerBadges', key: 'jsonUrl' },
       optional: true,
     },
   },

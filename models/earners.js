@@ -1,6 +1,6 @@
 const db = require('../lib/db')
 const Earners = db.table('earners', {
-  fields: [ 'id' ],
+  fields: [ 'id', 'createdOn' ],
   relationships: {
     badges: {
       type: 'hasMany',

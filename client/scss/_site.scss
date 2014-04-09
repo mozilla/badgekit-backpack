@@ -1,0 +1,24 @@
+%horizontal-list {
+  @include clearfix;
+
+  li {
+    display: inline-block;
+
+    a {
+      display: inline-block;
+    }
+  }
+}
+
+%reset-dimensions {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+
+%hide-text {
+  text-indent: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+}

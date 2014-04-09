@@ -16,7 +16,7 @@ gulp.task("server", function() {
 
 gulp.task("scss", function () {
   gulp.src("./scss/*.scss")
-    .pipe(sass())
+    .pipe(sass().on('error', gutil.log))
     .pipe(gulp.dest("./build"));
 });
 
@@ -36,7 +36,7 @@ gulp.task("js", function() {
 
 gulp.task("templates", function(){
   gulp.src("./js/templates/**/*.hbs")
-    .pipe(handlebars())
+    .pipe(handlebars().on('error', gutil.log))
     .pipe(defineModule("plain"))
     .pipe(declare({
       namespace: "App.Templates"
@@ -59,6 +59,16 @@ gulp.task("html", function() {
     .pipe(gulp.dest("./build"));
 });
 
+gulp.task("images", function() {
+  gulp.src("./images/**/*")
+    .pipe(gulp.dest("./build/images"));
+});
+
+gulp.task("fonts", function() {
+  gulp.src("./fonts/**/*")
+    .pipe(gulp.dest("./build/fonts"));
+});
+
 gulp.task("watch", function() {
   gulp.watch("./scss/**/*.scss", function() {
     gulp.run("scss");
@@ -78,6 +88,14 @@ gulp.task("watch", function() {
 
   gulp.watch(["./spec/**/*_spec.js", "./build/application.js"], function() {
     gulp.run("spec");
+  });
+
+  gulp.watch("./images/**/*", function() {
+    gulp.run("images");
+  });
+
+  gulp.watch("./fonts/**/*", function() {
+    gulp.run("fonts");
   });
 });
 

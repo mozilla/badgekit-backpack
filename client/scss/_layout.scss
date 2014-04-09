@@ -1,0 +1,101 @@
+#container {
+  @include outer-container;
+  @include clearfix;
+  position: relative;
+  height: 100%;
+  background-color: $grey8;
+}
+
+#header {
+  @include span-columns(12);
+  position: relative;
+  min-height: em(125);
+  background-color: $grey5;
+
+  h1 {
+    @extend %hide-text;
+    width: 100%;
+    height: 270px;
+    background: {
+      image: url("images/csol_logo.png");
+      repeat: no-repeat;
+      position: center top;
+    }
+  }
+}
+
+#header-navigation {
+  position: absolute;
+  right: 2em;
+  bottom: 0;
+  left: 2em;
+  box-shadow: 0 0 em(8) em(3) rgba(0, 0, 0, 0.25);
+
+  ul {
+    @extend %horizontal-list;
+    text-align: center;
+    background: {
+      color: $main-navigation-bg-color;
+    }
+
+    li {
+      border-right: solid 1px $grey5;
+
+      &:last-child {
+        border: none;
+      }
+
+      a {
+        padding: .5em 1em;
+      }
+    }
+  }
+}
+
+#content {
+  @include row;
+  height: em(500);
+
+  h2 {
+    text-align: center;
+  }
+}
+
+.content-header {
+  @include span-columns(8);
+  @include shift(2);
+  @include omega;
+}
+
+.badge-filters {
+  @include span-columns(12);
+
+  ul {
+    @include clearfix;
+    @extend %horizontal-list;
+
+    li {
+      @include span-columns(2);
+
+      select {
+        @extend %reset-dimensions;
+      }
+
+      &:first-child {
+        @include shift(1);
+      }
+
+      &:last-child {
+        @include omega;
+      }
+
+      button {
+        float: right;
+      }
+    }
+  }
+}
+
+#footer {
+  @include row;
+}

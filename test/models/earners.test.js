@@ -40,7 +40,7 @@ prepare().then(function (db) {
 
     Earners.getOne(query, options)
       .then(function(earner) {
-        t.same(earner.metadata(), expect, 'gets correct user metadata')
+        t.same(earner.metadata, expect, 'gets correct user metadata')
         t.end()
       })
   })

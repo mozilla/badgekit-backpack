@@ -2,12 +2,12 @@ const db = require('../lib/db')
 const Earners = db.table('earners', {
   fields: [ 'id', 'createdOn' ],
   relationships: {
-    // badges: {
-    //   type: 'hasMany',
-    //   local: 'id',
-    //   foreign: { table: 'earnerBadges', key: 'earnerId' },
-    //   optional: true,
-    // },
+    badges: {
+      type: 'hasMany',
+      local: 'id',
+      foreign: { table: 'earnerBadges', key: 'earnerId' },
+      optional: true,
+    },
     _metadata: {
       type: 'hasMany',
       local: 'id',

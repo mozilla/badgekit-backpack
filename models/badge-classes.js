@@ -20,7 +20,7 @@ const BadgeClasses = db.table('badgeClasses', {
     issuer: {
       type: 'hasOne',
       local: 'issuerOrgId',
-      foreign: { table: 'issuerOrg', key: 'id' },
+      foreign: { table: 'issuerOrgs', key: 'id' },
     },
   },
 })

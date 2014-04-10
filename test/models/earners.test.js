@@ -64,7 +64,6 @@ prepare().then(function (db) {
       })
   })
 
-
   test('--close--', function (t) {
     db.close(), t.end()
   })

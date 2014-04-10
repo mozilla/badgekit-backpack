@@ -1,4 +1,5 @@
 const db = require('../lib/db')
+const xtend = require('xtend')
 const EarnerBadges = db.table('earnerBadges', {
   fields: [
     'id',
@@ -13,6 +14,15 @@ const EarnerBadges = db.table('earnerBadges', {
     'issuedOn',
     'expires',
   ],
+  constructor: function (obj) {
+    const proto = EarnerBadges.methods || {}
+    const nullTime = '0000-00-00 00:00:00'
+    if (obj.issuedOn === nullTime)
+      obj.issuedOn = null
+    if (obj.expires === nullTime)
+      obj.expires = null
+    return xtend(Object.create(proto), obj)
+  },
   relationships: {
     earner: {
       type: 'hasOne',

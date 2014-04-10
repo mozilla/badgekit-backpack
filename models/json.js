@@ -12,13 +12,13 @@ const JSON = db.table('json', {
     badge: {
       type: 'hasOne',
       local: 'url',
-      foreign: { table: 'earnerBadges', key: 'jsonUrl' },
+      foreign: { table: 'badgeClasses', key: 'jsonUrl' },
       optional: true,
     },
     issuer: {
       type: 'hasOne',
       local: 'url',
-      foreign: { table: 'earnerBadges', key: 'jsonUrl' },
+      foreign: { table: 'issuerOrgs', key: 'jsonUrl' },
       optional: true,
     },
   },

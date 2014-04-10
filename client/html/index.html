@@ -66,13 +66,8 @@
   </div>
   <script src="application.js"></script>
   <script>
-    function success(resp) {
-      console.log(resp);
-    }
-
-    $.ajax({ url: "user/1" }).done(success);
-    $.ajax({ url: "user/1/badges" }).done(success);
-    $.ajax({ url: "user/1/badges/1" }).done(success);
+    App.CurrentUser = new App.Models.User({ id: 1 });
+    App.CurrentUser.fetch();
   </script>
 </body>
 </html>

@@ -32,6 +32,8 @@ gulp.task("js", function() {
     "js/fake_api.js",
     "js/application.js",
     "js/templates.js",
+    "js/models/base_model.js",
+    "js/models/base_collection.js",
     "js/models/**/*.js",
     "js/views/**/*.js"
   ])

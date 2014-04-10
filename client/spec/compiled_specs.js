@@ -25,6 +25,45 @@ describe("App", function() {
   });
 });
 
+describe("App.Models.Badge", function() {
+  var subject;
+  var badgeAttributes;
+  beforeEach(function() {
+    badgeAttributes = _.clone(FakeAPI.users.first().badges.first());
+    subject = new App.Models.Badge(badgeAttributes);
+  });
+
+  it("has a urlRoot", function() {
+    expect(subject.urlRoot()).toEqual("/user/" + subject.get("earnerId") + "/badges/" + subject.id);
+  });
+});
+
+describe("App.Collections.Badges", function() {
+  var subject;
+
+  describe("when empty", function() {
+    beforeEach(function() {
+      subject = new App.Collections.Badges();
+    });
+
+    it("has an empty url", function() {
+      expect(subject.url()).toBeUndefined();
+    });
+  });
+
+  describe("when not empty", function() {
+    var badgeAttributes;
+    beforeEach(function() {
+      badgeAttributes = FakeAPI.users.first().badges.first();
+      subject = new App.Collections.Badges([badgeAttributes]);
+    });
+
+    it("has a url", function() {
+      expect(subject.url()).toEqual("/user/" + subject.first().get("earnerId") + "/badges");
+    });
+  });
+});
+
 describe("App.Models.BaseModel", function() {
   var BaseModel;
   var ChildModel;
@@ -34,7 +73,7 @@ describe("App.Models.BaseModel", function() {
   beforeEach(function() {
     ChildModel = App.Models.BaseModel.extend();
     BaseModel = App.Models.BaseModel.extend({
-      wrappedAttributes: {
+      relationships: {
         first_child: ChildModel,
         second_child: ChildModel
       }
@@ -379,6 +418,26 @@ describe("FakeServer", function() {
       it("responds to the request with the payload", function() {
         expect(request.respond).toHaveBeenCalledWith(404, subject.NotFoundHeaders, "Page Not Found");
       });
+    });
+  });
+});
+
+describe("App.Models.User", function() {
+  var subject;
+  var userAttributes;
+  beforeEach(function() {
+    userAttributes = _.clone(FakeAPI.users.first());
+    subject = new App.Models.User(userAttributes);
+  });
+
+  it("has a urlRoot", function() {
+    expect(subject.urlRoot).toEqual("/user");
+    expect(subject.url()).toEqual("/user/" + subject.id);
+  });
+
+  describe("relationships", function() {
+    it("wraps badges in a Badges collection", function() {
+      expect(subject.get("badges")).toBeTypeof(App.Collections.Badges);
     });
   });
 });

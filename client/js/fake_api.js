@@ -1,8 +1,9 @@
 (function() {
-  var data = {
+  FakeAPI = {
     users: [
       {
         id: 1,
+        user: "user@example.com",
         badges: [
           {
             id: 1,
@@ -23,14 +24,14 @@
   };
 
   FakeServer.route("/user/:id", function(id) {
-    return data.users.findWhere({ id: id });
+    return FakeAPI.users.findWhere({ id: id });
   });
 
   FakeServer.route("/user/:id/badges", function(id) {
-    return data.users.findWhere({ id: id }).badges;
+    return FakeAPI.users.findWhere({ id: id }).badges;
   });
 
   FakeServer.route("/user/:id/badges/:badgeId", function(id, badgeId) {
-    return data.users.findWhere({ id: id }).badges.findWhere({ id: badgeId });
+    return FakeAPI.users.findWhere({ id: id }).badges.findWhere({ id: badgeId });
   });
 })();

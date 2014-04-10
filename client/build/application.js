@@ -18022,6 +18022,58 @@ var __module0__ = (function(__dependency1__, __dependency2__, __dependency3__, _
   }
 }).call(this);
 
+(function() {
+  if (!Object.defineProperty || !(function () { try { Object.defineProperty({}, 'x', {}); return true; } catch (e) { return false; } } ())) {
+    var orig = Object.defineProperty;
+    Object.defineProperty = function (o, prop, desc) {
+      if (orig) {
+        try { return orig(o, prop, desc); } catch (e) {}
+      }
+      if (o !== Object(o)) { throw new Error("Object.defineProperty called on non-object"); }
+      if (Object.prototype.__defineGetter__ && ('get' in desc)) {
+        Object.prototype.__defineGetter__.call(o, prop, desc.get);
+      }
+      if (Object.prototype.__defineSetter__ && ('set' in desc)) {
+        Object.prototype.__defineSetter__.call(o, prop, desc.set);
+      }
+      if ('value' in desc) {
+        o[prop] = desc.value;
+      }
+      return o;
+    };
+  }
+
+  this.uw = {
+    defineMethod: function(prototype, method, func) {
+      if (!prototype[method]) {
+        Object.defineProperty(prototype, method, {
+          writeable: false,
+          configurable: false,
+          enumerable: false,
+          value: func
+        });
+      }
+    },
+
+    defineAlias: function(prototype, method, alias) {
+      if (prototype[method]) {
+        Object.defineProperty(prototype, alias, {
+          writeable: false,
+          configurable: false,
+          enumerable: false,
+          value: prototype[method]
+        });
+      }
+    },
+
+    requiresUnderscore: function(method) {
+      if (typeof _ === 'undefined') {
+        throw new Error(method + ' requires underscore.js');
+      }
+    }
+  };
+})();
+
 
 function isTypeof(constructor, suspect) {
   return suspect.constructor == constructor;
@@ -18063,213 +18115,261 @@ isUndefined = _.isUndefined;
 
 sequence = _.uniqueId;
 
-function uid () {
-
-    function S4() {
-       return ( ( ( 1 + Math.random() ) * 0x10000 ) | 0 ).toString(16).substring(1);
-    }
-
-    return S4() + S4() + "-" + S4() + "-" + S4() + "-" + S4() + "-" + S4() + S4() + S4();
-
+function uid() {
+  function S4() {
+    return ((( 1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
+  }
+  return S4() + S4() + "-" + S4() + "-" + S4() + "-" + S4() + "-" + S4() + S4() + S4();
 }
 
-var isDefined = function(suspect) {
-    return !_.isUndefined(suspect);
-}
-
-if (typeof String.prototype.isEmpty === "undefined") {
-    String.prototype.isEmpty = function() {
-        return _.isEmpty(this);
-    };
-}
-
-if (typeof String.prototype.escape === "undefined") {
-    String.prototype.escape = function() {
-        return _.escape.apply(this, [this].concat(_.toArray(arguments)));
-    };
+function isDefined(suspect) {
+  return !_.isUndefined(suspect);
 }
 (function() {
-
   var methods = [
-    'each',
-    'keys',
-    'values',
-    'pairs',
-    'invert',
-    'functions',
-    'pick',
-    'omit',
-    'defaults'
+    'each', 'keys', 'values', 'pairs', 'invert',
+    'functions', 'pick', 'omit', 'defaults', 'map'
   ];
 
   _.each(methods, function(method) {
-    if (Object.prototype[method]) { return; }
-    Object.defineProperty(Object.prototype, method, {
-      writeable: false,
-      configurable: false,
-      enumerable: false,
-      value: function() {
-        return _[method].apply(this, [this].concat(_.toArray(arguments)));
-      }
+    uw.defineMethod(Object.prototype, method, function() {
+      return _[method].apply(this, [this].concat(_.toArray(arguments)));
     });
   });
 
-  var aliases = {
-    extend: 'mixin',
-    clone: 'dup',
-    has: 'defines'
-  };
+  var aliases = { extend: 'mixin', clone: 'dup', has: 'defines' };
 
   _.each(aliases, function(alias, method) {
-    if (Object.prototype[alias]) { return; }
-    Object.defineProperty(Object.prototype, alias, {
-      writeable: false,
-      configurable: false,
-      enumerable: false,
-      value: function() {
-        return _[method].apply(this, [this].concat(_.toArray(arguments)));
-      }
+    uw.defineMethod(Object.prototype, alias, function() {
+      return _[method].apply(this, [this].concat(_.toArray(arguments)));
     });
   });
 
+
+
+
+
+  uw.defineMethod(Object.prototype, "bindAll", function() {
+    var context = this;
+    _.functions(this).each(function(func) {
+      var original = context[func];
+      context[func] = function() {
+        return original.apply(context, arguments);
+      };
+    });
+  });
 })();
 (function() {
   var methods = [
-    "all",
-    "any",
-    "collect",
-    "compact",
-    "contains",
-    "countBy",
-    "detect",
-    "difference",
-    "every",
-    "filter",
-    "find",
-    "findWhere",
-    "first",
-    "flatten",
-    "foldr",
-    "groupBy",
-    "include",
-    "indexOf",
-    "initial",
-    "inject",
-    "intersection",
-    "invoke",
-    "isEmpty",
-    "last",
-    "lastIndexOf",
-    "map",
-    "max",
-    "min",
-    "pluck",
-    "reduce",
-    "reduceRight",
-    "reject",
-    "rest",
-    "select",
-    "shuffle",
-    "size",
-    "some",
-    "sortBy",
-    "sortedIndex",
-    "tail",
-    "take",
-    "toArray",
-    "union",
-    "uniq",
-    "without",
-    "zip"
-  ];
-
-  var deferredNativeMethods = [
-    "every",
-    "filter",
-    "indexOf",
-    "lastIndexOf",
-    "map",
-    "reduce",
-    "reduceRight",
-    "some"
+    "all", "any", "collect", "compact", "contains", "countBy",
+    "detect", "difference", "every", "filter", "find", "findWhere", "first",
+    "flatten", "foldr", "groupBy", "include", "indexOf", "initial",
+    "inject", "intersection", "invoke", "isEmpty", "last", "lastIndexOf",
+    "map", "max", "min", "pluck", "reduce", "reduceRight", "reject",
+    "rest", "select", "shuffle", "size", "some", "sortBy", "sortedIndex",
+    "tail", "take", "toArray", "union", "uniq", "without", "zip"
   ];
 
   _.each(methods, function(method) {
-    if (Array.prototype[method]) {
-      if (_(deferredNativeMethods).contains(method)) return;
-      console.warn("Array.prototype." + method + " is being overwritten by underwear.js");
-    }
-
-    Object.defineProperty(Array.prototype, method, {
-      writeable: false,
-      configurable: false,
-      enumerable: false,
-      value: function() {
-        return _[method].apply(_, [this].concat(_.toArray(arguments)));
-      }
+    uw.defineMethod(Array.prototype, method, function() {
+      return _[method].apply(_, [this].concat(_.toArray(arguments)));
     });
   });
 
-  if (!Array.prototype.sum) {
-    Object.defineProperty(Array.prototype, 'sum', {
-      writeable: false,
-      configurable: false,
-      enumerable: false,
-      value: function() {
-        return _.reduce(this, function(memo, num) {
-          return memo + num;
-        }, 0);
-      }
-    });
+  uw.defineMethod(Array.prototype, 'sum', function() {
+    return _.reduce(this, function(memo, num) {
+      return memo + num;
+    }, 0);
+  });
+
+  uw.defineMethod(Array.prototype, 'second', function() {
+    return this[1];
+  });
+
+  uw.defineMethod(Array.prototype, 'third', function() {
+    return this[2];
+  });
+
+  uw.defineMethod(Array.prototype, 'isEmpty', function() {
+    return _.isEmpty.call(this, this);
+  });
+
+  uw.defineMethod(Array.prototype, 'isNotEmpty', function() {
+    return !_.isEmpty.call(this, this);
+  });
+
+  uw.defineMethod(Array, 'range', function() {
+    return _.range.apply([], arguments);
+  });
+
+})();
+var Template = (function() {
+
+  function Template(src) {
+    if (src.match(/^#/)) {
+      this.src = document.getElementById(src.replace(/^#/, '')).innerHTML;
+    }
+    else {
+      this.src = src;
+    }
   }
 
-  if (!Array.range) {
-    Object.defineProperty(Array, 'range', {
-      writeable: false,
-      configurable: false,
-      enumerable: false,
-      value: function() {
-        return _.range.apply([], arguments);
-      }
+  Template.prototype.render = function(data, settings) {
+    return _.template(this.src, data, settings);
+  };
+
+  return Template;
+})();
+(function() {
+  uw.defineMethod(String.prototype, "capitalize", function() {
+    uw.requiresUnderscore("capitalize");
+    return this.charAt(0).toUpperCase() + this.slice(1);
+  });
+
+  uw.defineMethod(String.prototype, "trim", function() {
+    return this.replace(/^\s+(.+)\s+$/, "$1");
+  });
+
+  uw.defineMethod(String.prototype, "ltrim", function() {
+    return this.replace(/^\s+/, "");
+  });
+
+  uw.defineMethod(String.prototype, "rtrim", function() {
+    return this.replace(/\s+$/, "");
+  });
+
+  uw.defineMethod(String.prototype, "compact", function() {
+    return this.replace(/\s/g, "");
+  });
+
+  uw.defineMethod(String.prototype, "singleSpace", function() {
+    return this.trim().replace(/\s{1,}/g, " ");
+  });
+
+  uw.defineMethod(String.prototype, "titleize", function() {
+    uw.requiresUnderscore("titleize");
+    return _(this.replace(/([A-Z])/g, " $1").replace(/-|_/g, " ").split(/\s/)).map(function(s) {
+      return s.capitalize();
+    }).join(" ");
+  });
+
+  uw.defineAlias(String.prototype, "titleize", "titleCase");
+
+  uw.defineMethod(String.prototype, "dasherize", function() {
+    return this.replace(/_/g, '-').toLowerCase();
+  });
+
+  uw.defineMethod(String.prototype, "humanize", function() {
+    return this.replace(/_/g, ' ').replace(/^\s?/, "").toLowerCase().capitalize();
+  });
+
+  uw.defineMethod(String.prototype, "hyphenate", function() {
+    return this.replace(/([A-Z])/g, " $1").toLowerCase().replace(/\s|_/g, '-').toLowerCase();
+  });
+
+  uw.defineMethod(String.prototype, "isBlank", function() {
+    return (/^(\s?)+$/).test(this);
+  });
+
+  uw.defineMethod(String.prototype, "isPresent", function() {
+    return this.length > 0 && !this.isBlank();
+  });
+
+  uw.defineMethod(String.prototype, "truncate", function(length) {
+    return (this.length > length) ? this.substring(0, length) + '...' : this;
+  });
+
+  uw.defineMethod(String.prototype, "toNumber", function() {
+    return this * 1 || 0;
+  });
+
+  uw.defineMethod(String.prototype, "camelize", function() {
+    uw.requiresUnderscore("camelize");
+    return _(this.split(/_|-|\s/g)).map(function(part, i) {
+      return (i > 0) ? part.capitalize() : part.toLowerCase();
+    }).join('');
+  });
+
+  uw.defineMethod(String.prototype, "constantize", function() {
+    return this.camelize().capitalize();
+  });
+
+  uw.defineMethod(String.prototype, "each", function(iterator) {
+    uw.requiresUnderscore("each");
+    return _.each.call(this, this.split(''), iterator);
+  });
+
+  uw.defineMethod(String.prototype, "underscore", function() {
+    return this.replace(/([A-Z])/g, " $1").replace(/^\s?/, '').replace(/-|\s/g, "_").toLowerCase();
+  });
+
+  uw.defineMethod(String.prototype, "isEmpty", function() {
+    return this.length === 0;
+  });
+
+  uw.defineMethod(String.prototype, "isNotEmpty", function() {
+    return this.length > 0;
+  });
+
+  uw.defineMethod(String.prototype, "includes", function(string) {
+    var s = new RegExp(string, 'g');
+    return this.match(s) ? true : false;
+  });
+
+  uw.defineMethod(String.prototype, "chunk", function(chunkSize) {
+    chunkSize = chunkSize ? chunkSize : this.length;
+    return this.match(new RegExp('.{1,' + chunkSize + '}', 'g'));
+  });
+
+  uw.defineMethod(String.prototype, "swapCase", function() {
+    return this.replace(/[A-Za-z]/g, function(s) {
+      return (/[A-Z]/).test(s) ? s.toLowerCase() : s.toUpperCase();
     });
-  }
+  });
 
-  var nativeMethods = [{
-    func: Array.prototype.forEach,
-    alias: 'each'
-  }];
+  uw.defineMethod(String.prototype, "stripTags", function() {
+    return this.replace(/<\w+(\s+("[^"]*"|'[^']*'|[^>])+)?>|<\/\w+>/gi, '');
+  });
 
-  _.each(nativeMethods, function(nativeMethod) {
-    if (nativeMethod.func) {
-      Object.defineProperty(Array.prototype, nativeMethod.alias, {
-        writeable: false,
-        configurable: false,
-        enumerable: false,
-        value: nativeMethod.func
-      });
+  uw.defineMethod(String.prototype, "wordCount", function(word) {
+    uw.requiresUnderscore("wordCount");
+    var matches;
+    var string = this.stripTags();
+    matches = (word) ? string.match(new RegExp(word, "g")) : string.match(/\b[A-Za-z_]+\b/g);
+    return matches ? matches.length : 0;
+  });
+
+  uw.defineMethod(String.prototype, "wrap", function(wrapper) {
+    return wrapper.concat(this, wrapper);
+  });
+
+  uw.defineMethod(String.prototype, "unwrap", function(wrapper) {
+    return this.replace(new RegExp("^" + wrapper + "(.+)" + wrapper + "$"), "$1");
+  });
+
+  uw.defineMethod(String.prototype, "escape", function() {
+    return _.escape.apply(this, [this].concat(_.toArray(arguments)));
+  });
+
+  uw.defineMethod(String.prototype, "unescape", function() {
+    return _.unescape.apply(this, [this].concat(_.toArray(arguments)));
+  });
+
+  uw.defineMethod(String.prototype, "toBoolean", function() {
+    var truthyStrings = ["true", "yes", "on", "y"];
+    var falseyStrings = ["false", "no", "off", "n"];
+    if (_(truthyStrings).contains(this.toLowerCase())) {
+      return true;
+    } else if (_(falseyStrings).contains(this.toLowerCase())) {
+      return false;
+    } else {
+      return this.isNotEmpty() ? true : false;
     }
   });
 
-
-  if (typeof Array.prototype.isEmpty === "undefined") {
-    Object.defineProperty(Array.prototype, 'isEmpty', {
-      writeable: false,
-      configurable: false,
-      enumerable: false,
-      value: _.isEmpty.call(this, this)
-    });
-  }
-
-  if (typeof Array.prototype.isNotEmpty === "undefined") {
-    Object.defineProperty(Array.prototype, 'isNotEmpty', {
-      writeable: false,
-      configurable: false,
-      enumerable: false,
-      value: function() {
-        return !_.isEmpty.call(this, this);
-      }
-    });
-  }
+  uw.defineAlias(String.prototype, "trim", "strip");
+  uw.defineAlias(String.prototype, "ltrim", "lstrip");
+  uw.defineAlias(String.prototype, "rtrim", "rstrip");
 
 })();
 
@@ -19984,10 +20084,11 @@ if (typeof String.prototype.escape === "undefined") {
 }).initialize();
 
 (function() {
-  var data = {
+  FakeAPI = {
     users: [
       {
         id: 1,
+        user: "user@example.com",
         badges: [
           {
             id: 1,
@@ -20008,15 +20109,15 @@ if (typeof String.prototype.escape === "undefined") {
   };
 
   FakeServer.route("/user/:id", function(id) {
-    return data.users.findWhere({ id: id });
+    return FakeAPI.users.findWhere({ id: id });
   });
 
   FakeServer.route("/user/:id/badges", function(id) {
-    return data.users.findWhere({ id: id }).badges;
+    return FakeAPI.users.findWhere({ id: id }).badges;
   });
 
   FakeServer.route("/user/:id/badges/:badgeId", function(id, badgeId) {
-    return data.users.findWhere({ id: id }).badges.findWhere({ id: badgeId });
+    return FakeAPI.users.findWhere({ id: id }).badges.findWhere({ id: badgeId });
   });
 })();
 
@@ -20042,10 +20143,6 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
     + "</h1>\n<p>stuff</p>\n";
   return buffer;
   });;
-// App.Models.Badge = App
-
-App.Collections.BaseCollection = Backbone.Collection.extend();
-
 App.Models.BaseModel = Backbone.Model.extend({
   constructor: function(attributes, options) {
     options = options || {};
@@ -20062,8 +20159,8 @@ App.Models.BaseModel = Backbone.Model.extend({
 
   parse: function(data) {
     var _this = this;
-    if (this.wrappedAttributes) {
-      _(this.wrappedAttributes).each(function(Class, attr) {
+    if (this.relationships) {
+      _(this.relationships).each(function(Class, attr) {
         _this.wrapAttribute(data, attr, Class);
       });
     }
@@ -20072,6 +20169,27 @@ App.Models.BaseModel = Backbone.Model.extend({
 
   isPersisted: function() {
     return !this.isNew();
+  }
+});
+
+App.Collections.BaseCollection = Backbone.Collection.extend();
+
+App.Models.Badge = App.Models.BaseModel.extend({
+  urlRoot: function() {
+    return "/user/" + this.get("earnerId") + "/badges/" + this.id;
+  }
+});
+
+App.Collections.Badges = App.Collections.BaseCollection.extend({
+  url: function() {
+    return this.isEmpty() ? undefined : "/user/" + this.first().get("earnerId") + "/badges";
+  }
+});
+
+App.Models.User = App.Models.BaseModel.extend({
+  urlRoot: "/user",
+  relationships: {
+    badges: App.Collections.Badges
   }
 });
 
@@ -20097,53 +20215,3 @@ App.Views.BaseView = Backbone.View.extend({
     context.isLoading = context.isLoading ? false : true;
   }
 });
-
-(function() {
-  var _super = App.Views.BaseView.prototype;
-  App.Views.CollectionView = App.Views.BaseView.extend({
-    initialize: function(options) {
-      _super.initialize.apply(this, arguments);
-      _.bindAll(this, "createListItemView", "renderListItemView");
-      this.modelViews = [];
-      this.modelName = this.modelName || options.modelName;
-      this.modelClass = this.modelClass || App.Models[this.modelName];
-      this.modelView = this.modelView || options.modelView || App.Views[this.modelViewName()];
-      this.collection = this.collection || new App.Collections[this.modelName + "s"];
-      this.emptyTemplate = this.emptyTemplate || _.template('<li class="empty">There are no <%= modelName.humanize().toLowerCase() %>s</li>');
-      this.collection.on("add reset remove sort", this.render, this);
-    },
-
-    render: function() {
-      this.$el.empty();
-      if (this.collection.isEmpty()) {
-        this.$el.html(this.emptyTemplate({ modelName: this.modelName }));
-      } else {
-        this.createListItemViews();
-        this.renderListItemViews();
-      }
-      return this.$el;
-    },
-
-    modelViewName: function() {
-      return this.modelName + "ListItem";
-    },
-
-    createListItemView: function(model, index) {
-      this.modelViews.push(new this.modelView({ model: model, index: index }));
-    },
-
-    renderListItemView: function(modelView) {
-      this.$el.append(modelView.render());
-    },
-
-    createListItemViews: function() {
-      this.modelViews.length = 0;
-      this.collection.each(this.createListItemView);
-    },
-
-    renderListItemViews: function() {
-      this.modelViews.each(this.renderListItemView);
-    }
-  });
-
-})();

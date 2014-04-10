@@ -14,8 +14,8 @@ App.Models.BaseModel = Backbone.Model.extend({
 
   parse: function(data) {
     var _this = this;
-    if (this.wrappedAttributes) {
-      _(this.wrappedAttributes).each(function(Class, attr) {
+    if (this.relationships) {
+      _(this.relationships).each(function(Class, attr) {
         _this.wrapAttribute(data, attr, Class);
       });
     }

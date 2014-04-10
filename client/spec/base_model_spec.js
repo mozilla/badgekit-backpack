@@ -7,7 +7,7 @@ describe("App.Models.BaseModel", function() {
   beforeEach(function() {
     ChildModel = App.Models.BaseModel.extend();
     BaseModel = App.Models.BaseModel.extend({
-      wrappedAttributes: {
+      relationships: {
         first_child: ChildModel,
         second_child: ChildModel
       }

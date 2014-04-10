@@ -72,25 +72,40 @@
 
   ul {
     @include clearfix;
+    @include span-columns(10);
+    @include shift(1);
+    @include omega;
     @extend %horizontal-list;
+    border: solid 1px $grey5;
+    padding: .5em;
 
     li {
-      @include span-columns(2);
-
+      @include span-columns(2 of 10);
+      padding: .5em 0 0 0;
       select {
-        @extend %reset-dimensions;
+        @extend %reset-spacing;
+        float: left;
+        width: 82%;
       }
 
-      &:first-child {
-        @include shift(1);
+      i {
+        display: inline-block;
+        padding: 3px .5em 0 0;
+        vertical-align: middle;
+        float: left;
       }
 
       &:last-child {
         @include omega;
+        padding: 0;
       }
 
       button {
-        float: right;
+        i {
+          @extend %reset-spacing;
+          float: none;
+          display: inline-block;
+        }
       }
     }
   }

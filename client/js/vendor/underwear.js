@@ -122,6 +122,7 @@ if (typeof String.prototype.escape === "undefined") {
     "every",
     "filter",
     "find",
+    "findWhere",
     "first",
     "flatten",
     "foldr",
@@ -246,49 +247,4 @@ if (typeof String.prototype.escape === "undefined") {
     });
   }
 
-})();
-(function() {
-
-  var methods = [
-    'bind',
-    'compose',
-    'debounce',
-    'defer',
-    'delay',
-    'memoize',
-    'once',
-    'throttle',
-    'wrap'
-  ];
-
-  _.each(methods, function(method) {
-    if (!Function.prototype[method]) {
-      Object.defineProperty(Function.prototype, method, {
-        writeable: false,
-        configurable: false,
-        enumerable: false,
-        value: function() {
-          return _[method].apply(this, [this].concat(_.toArray(arguments)));
-        }
-      });
-    }
-  });
-
-})();
-var Template = (function() {
-
-  function Template(src) {
-    if (src.match(/^#/)) {
-      this.src = document.getElementById(src.replace(/^#/, '')).innerHTML;
-    }
-    else {
-      this.src = src;
-    }
-  }
-
-  Template.prototype.render = function(data, settings) {
-    return _.template(this.src, data, settings);
-  };
-
-  return Template;
 })();

@@ -326,6 +326,26 @@ beforeEach(function() {
       };
     },
 
+    toHaveKey: function(key, value) {
+      return {
+        compare: function(actual, key, value) {
+          var pass;
+          var message;
+          if (value) {
+            pass = (typeof actual[key] !== undefined && actual[key] === value);
+            message = "Expected " + actual + ' to have the "' + key + '" key with a value of "' + value + '"';
+          } else {
+            pass = typeof actual[key] !== undefined;
+            message = "Expected " + actual + ' to have the "' + key + '" key';
+          }
+          return {
+            pass: pass,
+            message: message
+          };
+        }
+      };
+    },
+
     toHaveAttribute: function(attr, value) {
       return {
         compare: function(actual, attr, value) {

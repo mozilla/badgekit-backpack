@@ -1,4 +1,6 @@
 const package = require('../package')
+const earners = require('./earners')
+
 module.exports = function applyRoutes(server) {
   server.get('/', function (req, res) {
     return res.send({
@@ -6,4 +8,10 @@ module.exports = function applyRoutes(server) {
       version: package.version,
     });
   })
+
+  ;[earners].forEach(callWith(server))
+}
+
+function callWith(param) {
+  return function (fn) { return fn(param) }
 }

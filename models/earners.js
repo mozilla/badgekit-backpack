@@ -1,5 +1,5 @@
 const db = require('../lib/db')
-const xtend = require('xtend')
+const copy = require('../lib/copy')
 const Earners = db.table('earners', {
   fields: [ 'id', 'createdOn' ],
   relationships: {
@@ -23,8 +23,22 @@ const Earners = db.table('earners', {
       acc[datum.key] = datum.value
       return acc
     }, {})
-    return xtend(Object.create(proto), obj)
+    delete obj._metadata
+    return copy(Object.create(proto), obj)
   },
+  methods: { toResponse: toResponse }
 })
+
+function toResponse(obj) {
+  obj = obj || this
+  return {
+    id: obj.id,
+    createdOn: obj.createdOn,
+    badges: obj.badges,
+    metadata: obj.metadata,
+  }
+}
+
+Earners.toResponse = toResponse
 
 module.exports = Earners

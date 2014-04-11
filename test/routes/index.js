@@ -4,18 +4,25 @@ const Promise = require('bluebird')
 const concat = require('concat-stream')
 const server = require('../../')
 const assert = require('assert')
+const prepareDb = require('../models')
 
-const spawn = module.exports = function spawn() {
+const spawn = module.exports = function spawn(opts) {
   return new Promise(function (resolve, reject) {
     server.listen(0, function (error) {
       if (error) throw error
-      return resolve(new APIClient(server))
+      if (!opts.db)
+        return resolve(new APIClient(server))
+      prepareDb().then(function(db) {
+        return resolve(new APIClient(server, db))
+      })
     })
   })
 }
 
-function APIClient(server) {
+function APIClient(server, db) {
+  this.server = server
   this.prefix = 'http://127.0.0.1:' + server.address().port
+  this.db = db
 }
 
 APIClient.prototype.get = requestWithoutBody('GET')
@@ -23,7 +30,12 @@ APIClient.prototype.del = requestWithoutBody('DELETE')
 APIClient.prototype.post = requestWithBody('POST')
 APIClient.prototype.put = requestWithBody('PUT')
 
-APIClient.prototype.close = server.close.bind(server)
+APIClient.prototype.finish = function finish(t) {
+  this.server.close()
+  if (this.db)
+    this.db.close()
+  t.end()
+}
 
 function requestWithoutBody(method) {
   return function (urlSuffix) {

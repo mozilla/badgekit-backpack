@@ -37,6 +37,23 @@ module.exports = function earnerRoutes(server) {
       .catch(res.logInternalError('POST /users – Error creating new earner'))
   }
 
+  server.get('/users/:userId', findEarner)
+  function findEarner(req, res, next) {
+    const id = req.params.userId
+    Earners.getOne({id: id}, {relationships: true})
+      .then(function(earner) {
+        if (!earner)
+          throw new NotFoundError('Could not find earner with id `' + req.params.userId + '`')
+        return res.send(200, earner.toResponse())
+      })
+
+      .catch(NotFoundError, next)
+
+      .catch(res.logInternalError('DELETE /users/:userId – Error deleting user'))
+
+  }
+
+
   server.del('/users/:userId', deleteEarner)
   function deleteEarner(req, res, next) {
     const id = req.params.userId

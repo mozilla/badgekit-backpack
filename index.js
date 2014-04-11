@@ -7,6 +7,7 @@ const package = require('./package')
 const restify = require('restify');
 const bunyan = require('bunyan')
 const applyRoutes = require('./routes')
+const logInternalError = require('./middleware/log-internal-error')
 
 const logger = bunyan.createLogger({
   name: package.name
@@ -22,6 +23,7 @@ server.pre(restify.pre.sanitizePath());
 server.use(restify.acceptParser(server.acceptable));
 server.use(restify.queryParser({mapParams: false}));
 server.use(restify.bodyParser({mapParams: false, rejectUnknown: true}));
+server.use(logInternalError())
 
 applyRoutes(server)
 

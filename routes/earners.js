@@ -1,6 +1,9 @@
+const restify = require('restify')
 const Promise = require('bluebird')
 const Earners = require('../models/earners')
 const EarnerData = require('../models/earner-data')
+
+const NotFoundError = restify.NotFoundError
 
 module.exports = function earnerRoutes(server) {
   server.post('/users', createEarner)
@@ -31,9 +34,27 @@ module.exports = function earnerRoutes(server) {
         return res.send(201, earner.toResponse())
       })
 
-      .catch(function (error) {
-        req.log.error(error, 'POST /users: Error creating new earner')
-        return next()
+      .catch(res.logInternalError('POST /users – Error creating new earner'))
+  }
+
+  server.del('/users/:userId', deleteEarner)
+  function deleteEarner(req, res, next) {
+    const id = req.params.userId
+    const query = {id: id}
+    Earners.getOne(query)
+      .then(function(earner) {
+        if (!earner)
+          throw new NotFoundError('Could not find earner with id `' + req.params.userId + '`')
+
+        return Earners.del(query, {limit: 1})
       })
+
+      .then(function(result) {
+        return res.send(200, {status: 'deleted'})
+      })
+
+      .catch(NotFoundError, next)
+
+      .catch(res.logInternalError('DELETE /users/:userId – Error deleting user'))
   }
 }

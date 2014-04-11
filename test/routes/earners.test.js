@@ -20,5 +20,21 @@ prepare({db: true}).then(function(api) {
       })
   })
 
+  test('DELETE /users/:userId', function (t) {
+    api.del('/users/delete-me')
+      .then(function(res) {
+        t.same(res.statusCode, 200)
+        t.same(res.body.status, 'deleted' )
+        return api.del('/users/delete-me')
+      })
+
+      .then(function(res) {
+        t.same(res.body.code, 'NotFoundError')
+        t.same(res.statusCode, 404)
+        t.end()
+      })
+
+  })
+
   test('--close--', api.finish.bind(api))
 })

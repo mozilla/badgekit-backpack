@@ -41,7 +41,9 @@ describe("App.Controllers.Dashboard", function() {
     });
 
     it("renders the badges view", function() {
-      expect(subject.myBadges.children().length).toEqual(userAttributes.badges.length);
+      var size = userAttributes.badges.length;
+      var expectedChildCount = Math.floor(size + (size / 4));
+      expect(subject.myBadges.children().length).toEqual(expectedChildCount);
     });
   });
 

@@ -240,7 +240,7 @@ var Template = (function() {
   });
 
   uw.defineMethod(String.prototype, "hyphenate", function() {
-    return this.replace(/([A-Z])/g, " $1").toLowerCase().replace(/\s|_/g, '-').toLowerCase();
+    return this.replace(/([A-Z])/g, " $1").toLowerCase().trim().replace(/\s{2}/, " ").replace(/\s|_/g, '-').toLowerCase();
   });
 
   uw.defineMethod(String.prototype, "isBlank", function() {

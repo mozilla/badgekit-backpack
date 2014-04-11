@@ -1,7 +1,11 @@
-<div class="inner">
-  <span class="ribbon">{{ status }}</span>
-  <img src="{{ imageUrl }}">
-  <div class="description">
+<div class="inner {{ statusClass }}">
+  <span class="ribbon">{{ ribbonText }}</span>
+  <img src="{{ imageUrl }}" />
+  <p class="description">
     {{ description }}
+  </p>
+  <div class="actions">
+    <i class="fa fa-trash-o"></i>
+    <button>Details</button>
   </div>
 </div>

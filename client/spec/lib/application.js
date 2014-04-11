@@ -19873,7 +19873,7 @@ var Template = (function() {
   });
 
   uw.defineMethod(String.prototype, "hyphenate", function() {
-    return this.replace(/([A-Z])/g, " $1").toLowerCase().replace(/\s|_/g, '-').toLowerCase();
+    return this.replace(/([A-Z])/g, " $1").toLowerCase().trim().replace(/\s{2}/, " ").replace(/\s|_/g, '-').toLowerCase();
   });
 
   uw.defineMethod(String.prototype, "isBlank", function() {
@@ -20390,7 +20390,8 @@ App.Config = {};
       {
         id: 1,
         user: Faker.Internet.email(),
-        badges: _.times(5, function(i) {
+        sharingAllowed: [true, false].sample(),
+        badges: _.times(50, function(i) {
           var id = i + 1;
           return {
             id: id,
@@ -20408,6 +20409,7 @@ App.Config = {};
             isFavorite: [true, false].sample(),
             badgeClassId: 1,
             uid: uuid.v4(),
+            isNew: [true, false].sample(),
             imageUrl: location.origin + "/images/default-badge.png",
             badgeJSONUrl: location.origin + "/user/1/badges/" + id,
             evidenceUrl: location.origin + "/user/1/badges/" + id,
@@ -20513,19 +20515,23 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   var buffer = "", stack1, functionType="function", escapeExpression=this.escapeExpression;
 
 
-  buffer += "<div class=\"inner\">\n  <span class=\"ribbon\">";
-  if (stack1 = helpers.status) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
-  else { stack1 = (depth0 && depth0.status); stack1 = typeof stack1 === functionType ? stack1.call(depth0, {hash:{},data:data}) : stack1; }
+  buffer += "<div class=\"inner ";
+  if (stack1 = helpers.statusClass) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
+  else { stack1 = (depth0 && depth0.statusClass); stack1 = typeof stack1 === functionType ? stack1.call(depth0, {hash:{},data:data}) : stack1; }
+  buffer += escapeExpression(stack1)
+    + "\">\n  <span class=\"ribbon\">";
+  if (stack1 = helpers.ribbonText) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
+  else { stack1 = (depth0 && depth0.ribbonText); stack1 = typeof stack1 === functionType ? stack1.call(depth0, {hash:{},data:data}) : stack1; }
   buffer += escapeExpression(stack1)
     + "</span>\n  <img src=\"";
   if (stack1 = helpers.imageUrl) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
   else { stack1 = (depth0 && depth0.imageUrl); stack1 = typeof stack1 === functionType ? stack1.call(depth0, {hash:{},data:data}) : stack1; }
   buffer += escapeExpression(stack1)
-    + "\">\n  <div class=\"description\">\n    ";
+    + "\" />\n  <p class=\"description\">\n    ";
   if (stack1 = helpers.description) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
   else { stack1 = (depth0 && depth0.description); stack1 = typeof stack1 === functionType ? stack1.call(depth0, {hash:{},data:data}) : stack1; }
   buffer += escapeExpression(stack1)
-    + "\n  </div>\n</div>\n";
+    + "\n  </p>\n  <div class=\"actions\">\n    <i class=\"fa fa-trash-o\"></i>\n    <button>Details</button>\n  </div>\n</div>\n";
   return buffer;
   });;
 App.Models.BaseModel = Backbone.Model.extend({
@@ -20654,16 +20660,62 @@ App.Views.BaseView = Backbone.View.extend({
 App.Views.Badge = App.Views.BaseView.extend({
   template: App.Templates.badge,
   className: "badge",
+  tagName: "li",
+  descriptionLength: 50,
 
   render: function() {
-    return this.$el.html(this.template(this.model.toJSON()));
+    return this.$el.html(this.template(this.badgeJSON()));
+  },
+
+  badgeJSON: function() {
+    var json = this.model.toJSON();
+    json.description = json.description.truncate(this.descriptionLength);
+    json.statusClass = this.statusClass();
+    json.ribbonText = this.ribbonText();
+    return json;
+  },
+
+  statusClass: function() {
+    return this.model.get("isFavorite") ? "favorite" : this.model.get("status").hyphenate();
+  },
+
+  ribbonText: function() {
+    return this.model.get("isFavorite") ? "Favorite" : this.model.get("status").titleize();
   }
 });
 
-App.Views.Badges = App.Views.CollectionView.extend({
-  modelName: "Badge",
-  modelView: App.Views.Badge
-});
+(function() {
+  var _super = App.Views.CollectionView.prototype;
+  App.Views.Badges = App.Views.CollectionView.extend({
+    modelName: "Badge",
+    modelView: App.Views.Badge,
+    groupsOf: 4,
+
+    renderListItemView: function(modelView) {
+      _super.renderListItemView.apply(this, arguments);
+      this.renderListItemViewGrouped(modelView);
+    },
+
+    renderListItemViewGrouped: function(modelView) {
+      if (this.lastInGroup(modelView)) {
+        this.markLastInGroup(modelView);
+        this.renderDivider();
+      }
+    },
+
+    lastInGroup: function(view) {
+      return (view.index + 1) % 4 === 0;
+    },
+
+    markLastInGroup: function(view) {
+      view.$el.addClass("omega");
+    },
+
+    renderDivider: function() {
+      this.$el.append('<li class="divider"/>');
+    }
+  });
+})();
 
 (App.Controllers.Dashboard = {
   initialize: function() {

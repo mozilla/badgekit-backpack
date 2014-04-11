@@ -177,12 +177,12 @@ describe("App.Views.CollectionView", function() {
     });
 
     it("creates a list item view for each item", function() {
-      expect(subject.modelViews.length).toEqual(2);
+      expect(subject.modelViews.length).toEqual(subject.collection.length);
     });
 
     it("clears the modelViews array", function() {
       subject.createListItemViews();
-      expect(subject.modelViews.length).toEqual(2);
+      expect(subject.modelViews.length).toEqual(subject.collection.length);
     });
   });
 
@@ -194,7 +194,7 @@ describe("App.Views.CollectionView", function() {
     });
 
     it("renders each list item view", function() {
-      expect(subject.renderListItemView.calls.count()).toEqual(2);
+      expect(subject.renderListItemView.calls.count()).toEqual(subject.collection.length);
     });
   });
 

@@ -357,7 +357,9 @@ describe("App.Controllers.Dashboard", function() {
     });
 
     it("renders the badges view", function() {
-      expect(subject.myBadges.children().length).toEqual(userAttributes.badges.length);
+      var size = userAttributes.badges.length;
+      var expectedChildCount = Math.floor(size + (size / 4));
+      expect(subject.myBadges.children().length).toEqual(expectedChildCount);
     });
   });
 
@@ -457,6 +459,7 @@ describe("App.Models.BaseModel", function() {
 describe("App.Views.Badge", function() {
   var subject;
   var badgeAttributes;
+  var badgeJSON;
   beforeEach(function() {
     badgeAttributes = _.clone(FakeAPI.users.first().badges.first());
     affix("#container");
@@ -475,23 +478,80 @@ describe("App.Views.Badge", function() {
     expect(subject.className).toEqual("badge");
   });
 
+  it("is an li element", function() {
+    expect(subject.tagName).toEqual("li");
+  });
+
+  it("has a description length", function() {
+    expect(subject.descriptionLength).toBeNumber();
+  });
+
   describe("render", function() {
     beforeEach(function() {
+      badgeJSON = subject.badgeJSON();
       subject.render();
     });
 
     it("renders the model data in the template", function() {
-      expect(subject.$el.find(".description")).toHaveText(badgeAttributes.description);
-      expect(subject.$el.find("img")).toHaveAttribute("src", badgeAttributes.imageUrl);
-      expect(subject.$el.find(".ribbon")).toHaveText(badgeAttributes.status);
+      expect(subject.$el.find(".inner")).toHaveClass(badgeJSON.statusClass);
+      expect(subject.$el.find(".description")).toHaveText(badgeJSON.description);
+      expect(subject.$el.find("img")).toHaveAttribute("src", badgeJSON.imageUrl);
+      expect(subject.$el.find(".ribbon")).toHaveText(badgeJSON.ribbonText);
     });
   });
+
+  describe("badgeJSON", function() {
+    beforeEach(function() {
+      badgeJSON = subject.badgeJSON();
+    });
+
+    it("returns an object of the model attributes", function() {
+      expect(badgeJSON).toHaveKey("name", subject.model.get("name"));
+      expect(badgeJSON).toHaveKey("status", subject.model.get("status"));
+      expect(badgeJSON).toHaveKey("imageUrl", subject.model.get("imageUrl"));
+      expect(badgeJSON).toHaveKey("description", subject.model.get("description").truncate(subject.descriptionLength));
+      expect(badgeJSON).toHaveKey("statusClass", subject.statusClass());
+      expect(badgeJSON).toHaveKey("ribbonText", subject.ribbonText());
+    });
+  });
+
+  // describe("statusClass", function() {
+  //   it("returns a lower-cased, hyphenated version of the model's status", function() {
+  //     subject.model.set("status", "Some Status");
+  //     subject.model.set("isFavorite", false);
+  //     expect(subject.statusClass()).toEqual("some-status");
+  //   });
+
+  //   it("returns favorite if the model is a favorite", function() {
+  //     subject.model.set("isFavorite", true);
+  //     expect(subject.statusClass()).toEqual("favorite");
+  //   });
+  // });
+
+  // describe("ribbonText", function() {
+  //   it("returns a title case version of the model's status", function() {
+  //     subject.model.set("status", "some status");
+  //     subject.model.set("isFavorite", false);
+  //     expect(subject.ribbonText()).toEqual("Some Status");
+  //   });
+
+  //   it("returns favorite if the model is a favorite", function() {
+  //     subject.model.set("isFavorite", true);
+  //     expect(subject.ribbonText()).toEqual("Favorite");
+  //   });
+  // });
 });
 
 describe("App.Views.Badges", function() {
   var subject;
+  var badges;
   beforeEach(function() {
-    subject = new App.Views.Badges;
+    affix("#container");
+    badges = _.clone(FakeAPI.users.first().badges);
+    subject = new App.Views.Badges({
+      el: "#container",
+      collection: new App.Collections.Badges(badges)
+    });
   });
 
   it("has a modelName", function() {
@@ -500,6 +560,98 @@ describe("App.Views.Badges", function() {
 
   it("has a modelView", function() {
     expect(subject.modelView).toEqual(App.Views.Badge);
+  });
+
+  it("has a groups of property", function() {
+    expect(subject.groupsOf).toBeNumber();
+  });
+
+  describe("lastInGroup", function() {
+    var lastView;
+    var firstView;
+    beforeEach(function() {
+      subject.createListItemViews();
+      lastView = subject.modelViews[subject.groupsOf - 1];
+      firstView = subject.modelViews[0];
+    });
+
+    it("determines if the given view is last in the group", function() {
+      expect(subject.lastInGroup(lastView)).toBeTrue();
+      expect(subject.lastInGroup(firstView)).toBeFalse();
+    });
+
+    describe("markLastInGroup", function() {
+      beforeEach(function() {
+        subject.markLastInGroup(lastView);
+      });
+
+      it("adds the omega class to the view", function() {
+        expect(lastView.$el).toHaveClass("omega");
+      });
+    });
+  });
+
+  describe("renderDivider", function() {
+    beforeEach(function() {
+      subject.renderDivider();
+    });
+
+    it("appends a divider to the list", function() {
+      expect(subject.$el.find(".divider").length).toEqual(1);
+    });
+  });
+
+  describe("renderListItemViewGrouped", function() {
+    var lastView;
+    var firstView;
+
+    beforeEach(function() {
+      subject.createListItemViews();
+      spyOn(subject, "renderDivider");
+      lastView = subject.modelViews[subject.groupsOf - 1];
+      firstView = subject.modelViews[0];
+    });
+
+    describe("when view is last in group", function() {
+      beforeEach(function() {
+        subject.renderListItemViewGrouped(lastView);
+      });
+
+      it("renders the divider", function() {
+        expect(subject.renderDivider).toHaveBeenCalled();
+      });
+
+      it("marks the view as last", function() {
+        expect(lastView.$el).toHaveClass("omega");
+      });
+    });
+
+    describe("when view is not last in group", function() {
+      beforeEach(function() {
+        subject.renderListItemViewGrouped(firstView);
+      });
+
+      it("renders the divider", function() {
+        expect(subject.renderDivider).not.toHaveBeenCalled();
+      });
+
+      it("marks the view as last", function() {
+        expect(firstView.$el).not.toHaveClass("omega");
+      });
+    });
+  });
+
+  describe("renderListItemView", function() {
+    beforeEach(function() {
+      subject.createListItemView(subject.collection.first(), 0);
+      spyOn(subject.$el, "append");
+      spyOn(subject, "renderListItemViewGrouped");
+      subject.renderListItemView(subject.modelViews.first());
+    });
+
+    it("renders the list item grouped", function() {
+      expect(subject.renderListItemViewGrouped).toHaveBeenCalled();
+    });
   });
 });
 
@@ -745,12 +897,12 @@ describe("App.Views.CollectionView", function() {
     });
 
     it("creates a list item view for each item", function() {
-      expect(subject.modelViews.length).toEqual(2);
+      expect(subject.modelViews.length).toEqual(subject.collection.length);
     });
 
     it("clears the modelViews array", function() {
       subject.createListItemViews();
-      expect(subject.modelViews.length).toEqual(2);
+      expect(subject.modelViews.length).toEqual(subject.collection.length);
     });
   });
 
@@ -762,7 +914,7 @@ describe("App.Views.CollectionView", function() {
     });
 
     it("renders each list item view", function() {
-      expect(subject.renderListItemView.calls.count()).toEqual(2);
+      expect(subject.renderListItemView.calls.count()).toEqual(subject.collection.length);
     });
   });
 

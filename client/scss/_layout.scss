@@ -118,14 +118,100 @@
 .badges {
   @include row;
   margin: 2em 0;
-}
 
-.badge {
-  @include span-columns(3);
-  padding: 1em;
+  .badge {
+    @include span-columns(3);
+    @include clearfix;
+    padding: 1em;
 
-  .inner {
-    border: solid 1px $grey5;
+    &.omega {
+      @include omega;
+    }
+
+    &.divider {
+      @include fill-parent;
+      @include omega;
+      clear: both;
+      height: 1px;
+    }
+
+    .inner {
+      @include fill-parent;
+      background: {
+        color: $badge-bg-color;
+      }
+      overflow: hidden;
+      position: relative;
+      border: solid 1px $grey5;
+      box-shadow: 0px 0px 10px rgba(0, 0, 0, .5);
+      padding: 1em;
+    }
+
+    .in-queue {
+      .ribbon {
+        background: {
+          color: $in-queue-ribbon-color;
+        }
+      }
+    }
+
+    .awarded {
+      .ribbon {
+        background: {
+          color: $awarded-ribbon-color;
+        }
+      }
+    }
+
+    .reviewed {
+      .ribbon {
+        background: {
+          color: $reviewed-ribbon-color;
+        }
+      }
+    }
+
+    .favorite {
+      .ribbon {
+        background: {
+          color: $favorite-ribbon-color;
+        }
+      }
+    }
+
+    .ribbon {
+      @include transform(rotate(-45deg));
+      width: 300px;
+      display: block;
+      padding-top: .25em;
+      padding-bottom: .25em;
+      position: absolute;
+      padding: .25em 0 .25em 80%;
+      left: -50%;
+      top: 21%;
+      background: {
+        color: $red;
+      }
+    }
+
+    .description {
+      font-size: 1em;
+      line-height: 1.25em;
+      height: 3.75em;
+    }
+
+    .actions {
+      @include fill-parent;
+      @include clearfix;
+    }
+
+    i {
+      cursor: pointer;
+    }
+
+    button {
+      float: right;
+    }
   }
 }
 

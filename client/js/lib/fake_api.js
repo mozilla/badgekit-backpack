@@ -4,7 +4,8 @@
       {
         id: 1,
         user: Faker.Internet.email(),
-        badges: _.times(5, function(i) {
+        sharingAllowed: [true, false].sample(),
+        badges: _.times(50, function(i) {
           var id = i + 1;
           return {
             id: id,
@@ -22,6 +23,7 @@
             isFavorite: [true, false].sample(),
             badgeClassId: 1,
             uid: uuid.v4(),
+            isNew: [true, false].sample(),
             imageUrl: location.origin + "/images/default-badge.png",
             badgeJSONUrl: location.origin + "/user/1/badges/" + id,
             evidenceUrl: location.origin + "/user/1/badges/" + id,

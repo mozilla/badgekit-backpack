@@ -121,10 +121,6 @@ function isDefined(suspect) {
     });
   });
 
-
-
-
-
   uw.defineMethod(Object.prototype, "bindAll", function() {
     var context = this;
     _.functions(this).each(function(func) {
@@ -172,6 +168,10 @@ function isDefined(suspect) {
 
   uw.defineMethod(Array.prototype, 'isNotEmpty', function() {
     return !_.isEmpty.call(this, this);
+  });
+
+  uw.defineMethod(Array.prototype, 'sample', function() {
+    return this[_.random(0, this.length - 1)];
   });
 
   uw.defineMethod(Array, 'range', function() {
@@ -346,5 +346,4 @@ var Template = (function() {
   uw.defineAlias(String.prototype, "trim", "strip");
   uw.defineAlias(String.prototype, "ltrim", "lstrip");
   uw.defineAlias(String.prototype, "rtrim", "rstrip");
-
 })();

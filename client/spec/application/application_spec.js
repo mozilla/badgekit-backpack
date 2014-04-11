@@ -21,6 +21,9 @@ describe("App", function() {
   });
 
   it("has a Dispatcher", function() {
-    expect(subject.Dispatcher).toDeepEqual(Backbone.Events);
+    expect(subject.Dispatcher).toBeDefined();
+    expect(subject.Dispatcher.on).toBeDefined();
+    expect(subject.Dispatcher.off).toBeDefined();
+    expect(subject.Dispatcher.trigger).toBeDefined();
   });
 });

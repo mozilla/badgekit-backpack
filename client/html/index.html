@@ -58,17 +58,13 @@
             </li>
           </ul>
       </section>
-      <ul class="badges">
-        <li></li>
-      </ul>
+      <ul id="my-badges" class="badges"></ul>
     </section>
     <footer id="footer"></footer>
   </div>
   <script src="application.js"></script>
   <script>
-    App.CurrentUser = new App.Models.User({ id: 1 });
-    App.CurrentUser.fetch();
-    // App.CurrentUser.fetch({ beforeSend: function() { debugger; }});
+    App.Dispatcher.trigger("dashboard:index", { id: 1 });
   </script>
 </body>
 </html>

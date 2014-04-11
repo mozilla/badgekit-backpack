@@ -2,7 +2,7 @@ App.Models.BaseModel = Backbone.Model.extend({
   constructor: function(attributes, options) {
     options = options || {};
     options.parse = true;
-    Backbone.Model.call(this, attributes, options);
+    Backbone.Model.apply(this, [attributes, options]);
   },
 
   wrapAttribute: function(attributes, key, Class) {

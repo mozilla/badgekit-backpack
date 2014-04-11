@@ -26,16 +26,23 @@ gulp.task("js", function() {
     "js/vendor/jquery-2.1.0.js",
     "js/vendor/handlebars-v1.3.0.js",
     "js/vendor/underscore.js",
-    "js/vendor/underwear.js",
     "js/vendor/backbone.js",
-    "js/fake_server.js",
-    "js/fake_api.js",
-    "js/application.js",
-    "js/templates.js",
+    "js/vendor/underwear.js",
+    "js/vendor/faker.js",
+    "js/vendor/uuid.js",
+    "js/lib/config.js",
+    "js/lib/fake_server.js",
+    "js/lib/fake_api.js",
+    "js/lib/application.js",
+    "js/lib/templates.js",
     "js/models/base_model.js",
     "js/models/base_collection.js",
     "js/models/**/*.js",
-    "js/views/**/*.js"
+    "js/views/base_view.js",
+    "js/views/collection_view.js",
+    "js/views/badge.js",
+    "js/views/badges.js",
+    "js/controllers/**/*.js"
   ])
   .pipe(concat("application.js").on('error', gutil.log))
   .pipe(gulp.dest("build"));
@@ -49,7 +56,7 @@ gulp.task("templates", function(){
       namespace: "App.Templates"
     }))
     .pipe(concat("templates.js"))
-    .pipe(gulp.dest("js"));
+    .pipe(gulp.dest("js/lib"));
 });
 
 gulp.task("spec", function() {

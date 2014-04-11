@@ -145,9 +145,9 @@ describe("FakeServer", function() {
     });
 
     it("parses a url", function() {
-      expect(parsedUrl).toHaveKey("origin", "http://localhost:3001");
+      expect(parsedUrl).toHaveKey("origin", "http://localhost:" + location.port);
       expect(parsedUrl).toHaveKey("path", "/path");
-      expect(parsedUrl).toHaveKey("port", "3001");
+      expect(parsedUrl).toHaveKey("port",  location.port);
       expect(parsedUrl).toHaveKey("protocol", "http:");
       expect(parsedUrl).toHaveKey("query", "?query=string");
       expect(parsedUrl.params).toHaveKey("query", "string");

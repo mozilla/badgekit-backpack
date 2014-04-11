@@ -62,13 +62,17 @@
 }
 
 .content-header {
-  @include span-columns(8);
-  @include shift(2);
-  @include omega;
+  @include row;
+
+  p {
+    @include span-columns(8);
+    @include shift(2);
+    @include omega;
+  }
 }
 
 .badge-filters {
-  @include span-columns(12);
+  @include row;
 
   ul {
     @include clearfix;
@@ -108,6 +112,20 @@
         }
       }
     }
+  }
+}
+
+.badges {
+  @include row;
+  margin: 2em 0;
+}
+
+.badge {
+  @include span-columns(3);
+  padding: 1em;
+
+  .inner {
+    border: solid 1px $grey5;
   }
 }
 

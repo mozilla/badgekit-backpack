@@ -1,175 +1,3 @@
-describe("App", function() {
-  var subject;
-  beforeEach(function() {
-    subject = App;
-  });
-
-  it("has a Models namespace", function() {
-    expect(subject.Models).toBeObject();
-  });
-
-  it("has a Collections namespace", function() {
-    expect(subject.Collections).toBeObject();
-  });
-
-  it("has a Views namespace", function() {
-    expect(subject.Views).toBeObject();
-  });
-
-  it("has a Controllers namespace", function() {
-    expect(subject.Views).toBeObject();
-  });
-
-  it("has a Dispatcher", function() {
-    expect(subject.Dispatcher).toDeepEqual(Backbone.Events);
-  });
-});
-
-describe("App.Models.Badge", function() {
-  var subject;
-  var badgeAttributes;
-  beforeEach(function() {
-    badgeAttributes = _.clone(FakeAPI.users.first().badges.first());
-    subject = new App.Models.Badge(badgeAttributes);
-  });
-
-  it("has a urlRoot", function() {
-    expect(subject.urlRoot()).toEqual("/user/" + subject.get("earnerId") + "/badges/" + subject.id);
-  });
-});
-
-describe("App.Collections.Badges", function() {
-  var subject;
-
-  describe("when empty", function() {
-    beforeEach(function() {
-      subject = new App.Collections.Badges();
-    });
-
-    it("has an empty url", function() {
-      expect(subject.url()).toBeUndefined();
-    });
-  });
-
-  describe("when not empty", function() {
-    var badgeAttributes;
-    beforeEach(function() {
-      badgeAttributes = FakeAPI.users.first().badges.first();
-      subject = new App.Collections.Badges([badgeAttributes]);
-    });
-
-    it("has a url", function() {
-      expect(subject.url()).toEqual("/user/" + subject.first().get("earnerId") + "/badges");
-    });
-  });
-});
-
-describe("App.Models.BaseModel", function() {
-  var BaseModel;
-  var ChildModel;
-  var data;
-  var subject;
-
-  beforeEach(function() {
-    ChildModel = App.Models.BaseModel.extend();
-    BaseModel = App.Models.BaseModel.extend({
-      relationships: {
-        first_child: ChildModel,
-        second_child: ChildModel
-      }
-    });
-    data = { first_child: { id: 1 }};
-    subject = new BaseModel;
-  });
-
-  describe("wrapAttribute", function() {
-    it("wraps the given attribute", function() {
-      subject.wrapAttribute(data, "first_child", ChildModel);
-      expect(data.first_child).toBeTypeof(ChildModel);
-    });
-  });
-
-  describe("parse", function() {
-    it("wraps the given attributes", function() {
-      spyOn(subject, "wrapAttribute").and.callThrough();
-      subject.parse(data);
-      expect(subject.wrapAttribute).toHaveBeenCalled();
-      expect(data.first_child).toBeTypeof(ChildModel);
-    });
-  });
-
-  describe("isPersisted", function() {
-    it("returns the opposite of isNew", function() {
-      expect(subject.isPersisted()).toBeFalse();
-      spyOn(subject, "isNew").and.returnValue(false);
-      expect(subject.isPersisted()).toBeTrue();
-    });
-  });
-});
-
-describe("App.Views.BaseView", function() {
-  var subject;
-  var $element;
-
-  beforeEach(function() {
-    affix("#container");
-    $element = affix("#element");
-    subject = new App.Views.BaseView({ el: "#container" });
-  });
-
-  describe("initialize", function() {
-    it("has an index if passed", function() {
-      subject = new App.Views.BaseView({ el: "#container", index: 3 });
-      expect(subject.index).toEqual(3);
-    });
-  });
-
-  describe("toggleLoading", function() {
-    beforeEach(function() {
-      subject.toggleLoading();
-    });
-
-    it("sets the isLoading flag", function() {
-      expect(subject.isLoading).toBeTrue();
-    });
-
-    it("adds the loading class", function() {
-      expect(subject.$el).toHaveClass("loading");
-    });
-
-    it("creates a loading mask", function() {
-      expect(subject.$el.find(".loading-mask")).toExist();
-      expect(subject.loadingMask).toBeJqueryWrapped();
-    });
-
-    describe("already loading", function() {
-      beforeEach(function() {
-        subject.toggleLoading();
-      });
-
-      it("sets isLoading to false", function() {
-        expect(subject.isLoading).toBeFalse();
-      });
-
-      it("removes the loading mask", function() {
-        expect(subject.$el.find(".loading-mask")).not.toExist();
-        expect(subject.loadingMask).toBeUndefined();
-      });
-
-      it("removes the loading class", function() {
-        expect(subject.$el).not.toHaveClass("loading");
-      });
-    });
-
-    describe("with element", function() {
-      it("sets the isLoading flag", function() {
-        subject.toggleLoading($element);
-        expect($element.isLoading).toBeTrue();
-      });
-    });
-  });
-});
-
 describe("FakeServer", function() {
   var subject;
   var path;
@@ -317,9 +145,9 @@ describe("FakeServer", function() {
     });
 
     it("parses a url", function() {
-      expect(parsedUrl).toHaveKey("origin", "http://localhost:3001");
+      expect(parsedUrl).toHaveKey("origin", "http://localhost:" + location.port);
       expect(parsedUrl).toHaveKey("path", "/path");
-      expect(parsedUrl).toHaveKey("port", "3001");
+      expect(parsedUrl).toHaveKey("port",  location.port);
       expect(parsedUrl).toHaveKey("protocol", "http:");
       expect(parsedUrl).toHaveKey("query", "?query=string");
       expect(parsedUrl.params).toHaveKey("query", "string");
@@ -454,4 +282,488 @@ describe("App.Models.User", function() {
       expect(subject.get("badges")).toBeTypeof(App.Collections.Badges);
     });
   });
+});
+
+describe("App", function() {
+  var subject;
+  beforeEach(function() {
+    subject = App;
+  });
+
+  it("has a Models namespace", function() {
+    expect(subject.Models).toBeObject();
+  });
+
+  it("has a Collections namespace", function() {
+    expect(subject.Collections).toBeObject();
+  });
+
+  it("has a Views namespace", function() {
+    expect(subject.Views).toBeObject();
+  });
+
+  it("has a Controllers namespace", function() {
+    expect(subject.Views).toBeObject();
+  });
+
+  it("has a Dispatcher", function() {
+    expect(subject.Dispatcher).toBeDefined();
+    expect(subject.Dispatcher.on).toBeDefined();
+    expect(subject.Dispatcher.off).toBeDefined();
+    expect(subject.Dispatcher.trigger).toBeDefined();
+  });
+});
+
+describe("App.Controllers.Dashboard", function() {
+  var subject;
+  var userAttributes;
+  beforeEach(function() {
+    userAttributes = _.clone(FakeAPI.users.first());
+    affix("#my-badges");
+    subject = App.Controllers.Dashboard;
+  });
+
+  describe("initialize", function() {
+    beforeEach(function() {
+      spyOn(_, "bindAll");
+      subject.initialize();
+    });
+
+    it("binds all methods to the controller", function() {
+      _.functions(subject).each(function(method) {
+        expect(_.bindAll).toHaveBeenCalledWith(subject, method);
+      });
+    });
+  });
+
+  describe("cacheIndexElements", function() {
+    beforeEach(function() {
+      subject.cacheIndexElements();
+    });
+
+    it("has a myBadges reference", function() {
+      expect(subject.myBadges).toBeJqueryWrapped("#my-badges");
+    });
+  });
+
+  describe("renderBadges", function() {
+    beforeEach(function() {
+      App.CurrentUser = new App.Models.User(userAttributes);
+      subject.renderBadges();
+    });
+
+    it("creates a badges view", function() {
+      expect(subject.badgesView).toBeTypeof(App.Views.Badges);
+    });
+
+    it("renders the badges view", function() {
+      expect(subject.myBadges.children().length).toEqual(userAttributes.badges.length);
+    });
+  });
+
+  describe("renderBadgeFetchFailure", function() {
+    beforeEach(function() {
+      subject.renderBadgeFetchFailure();
+    });
+
+    it("renders an error message", function() {
+      expect(subject.myBadges).toHaveText("There was an error fetching your badges");
+    });
+  });
+});
+
+describe("App.Models.Badge", function() {
+  var subject;
+  var badgeAttributes;
+  beforeEach(function() {
+    badgeAttributes = _.clone(FakeAPI.users.first().badges.first());
+    subject = new App.Models.Badge(badgeAttributes);
+  });
+
+  it("has a urlRoot", function() {
+    expect(subject.urlRoot()).toEqual("/user/" + subject.get("earnerId") + "/badges/" + subject.id);
+  });
+});
+
+describe("App.Collections.Badges", function() {
+  var subject;
+
+  describe("when empty", function() {
+    beforeEach(function() {
+      subject = new App.Collections.Badges();
+    });
+
+    it("has an empty url", function() {
+      expect(subject.url()).toBeUndefined();
+    });
+  });
+
+  describe("when not empty", function() {
+    var badgeAttributes;
+    beforeEach(function() {
+      badgeAttributes = FakeAPI.users.first().badges.first();
+      subject = new App.Collections.Badges([badgeAttributes]);
+    });
+
+    it("has a url", function() {
+      expect(subject.url()).toEqual("/user/" + subject.first().get("earnerId") + "/badges");
+    });
+  });
+});
+
+describe("App.Models.BaseModel", function() {
+  var BaseModel;
+  var ChildModel;
+  var data;
+  var subject;
+
+  beforeEach(function() {
+    ChildModel = App.Models.BaseModel.extend();
+    BaseModel = App.Models.BaseModel.extend({
+      relationships: {
+        first_child: ChildModel,
+        second_child: ChildModel
+      }
+    });
+    data = { first_child: { id: 1 }};
+    subject = new BaseModel;
+  });
+
+  describe("wrapAttribute", function() {
+    it("wraps the given attribute", function() {
+      subject.wrapAttribute(data, "first_child", ChildModel);
+      expect(data.first_child).toBeTypeof(ChildModel);
+    });
+  });
+
+  describe("parse", function() {
+    it("wraps the given attributes", function() {
+      spyOn(subject, "wrapAttribute").and.callThrough();
+      subject.parse(data);
+      expect(subject.wrapAttribute).toHaveBeenCalled();
+      expect(data.first_child).toBeTypeof(ChildModel);
+    });
+  });
+
+  describe("isPersisted", function() {
+    it("returns the opposite of isNew", function() {
+      expect(subject.isPersisted()).toBeFalse();
+      spyOn(subject, "isNew").and.returnValue(false);
+      expect(subject.isPersisted()).toBeTrue();
+    });
+  });
+});
+
+describe("App.Views.Badge", function() {
+  var subject;
+  var badgeAttributes;
+  beforeEach(function() {
+    badgeAttributes = _.clone(FakeAPI.users.first().badges.first());
+    affix("#container");
+    subject = new App.Views.Badge({
+      el: "#container",
+      model: new App.Models.Badge(badgeAttributes)
+    });
+  });
+
+  it("has a template", function() {
+    expect(subject.template).toBeDefined();
+    expect(subject.template).toEqual(App.Templates.badge);
+  });
+
+  it("has a className", function() {
+    expect(subject.className).toEqual("badge");
+  });
+
+  describe("render", function() {
+    beforeEach(function() {
+      subject.render();
+    });
+
+    it("renders the model data in the template", function() {
+      expect(subject.$el.find(".description")).toHaveText(badgeAttributes.description);
+      expect(subject.$el.find("img")).toHaveAttribute("src", badgeAttributes.imageUrl);
+      expect(subject.$el.find(".ribbon")).toHaveText(badgeAttributes.status);
+    });
+  });
+});
+
+describe("App.Views.Badges", function() {
+  var subject;
+  beforeEach(function() {
+    subject = new App.Views.Badges;
+  });
+
+  it("has a modelName", function() {
+    expect(subject.modelName).toEqual("Badge");
+  });
+
+  it("has a modelView", function() {
+    expect(subject.modelView).toEqual(App.Views.Badge);
+  });
+});
+
+describe("App.Views.BaseView", function() {
+  var subject;
+  var $element;
+
+  beforeEach(function() {
+    affix("#container");
+    $element = affix("#element");
+    subject = new App.Views.BaseView({ el: "#container" });
+  });
+
+  describe("initialize", function() {
+    it("has an index if passed", function() {
+      subject = new App.Views.BaseView({ el: "#container", index: 3 });
+      expect(subject.index).toEqual(3);
+    });
+  });
+
+  describe("toggleLoading", function() {
+    beforeEach(function() {
+      subject.toggleLoading();
+    });
+
+    it("sets the isLoading flag", function() {
+      expect(subject.isLoading).toBeTrue();
+    });
+
+    it("adds the loading class", function() {
+      expect(subject.$el).toHaveClass("loading");
+    });
+
+    it("creates a loading mask", function() {
+      expect(subject.$el.find(".loading-mask")).toExist();
+      expect(subject.loadingMask).toBeJqueryWrapped();
+    });
+
+    describe("already loading", function() {
+      beforeEach(function() {
+        subject.toggleLoading();
+      });
+
+      it("sets isLoading to false", function() {
+        expect(subject.isLoading).toBeFalse();
+      });
+
+      it("removes the loading mask", function() {
+        expect(subject.$el.find(".loading-mask")).not.toExist();
+        expect(subject.loadingMask).toBeUndefined();
+      });
+
+      it("removes the loading class", function() {
+        expect(subject.$el).not.toHaveClass("loading");
+      });
+    });
+
+    describe("with element", function() {
+      it("sets the isLoading flag", function() {
+        subject.toggleLoading($element);
+        expect($element.isLoading).toBeTrue();
+      });
+    });
+  });
+});
+
+describe("App.Views.CollectionView", function() {
+  var subject;
+
+  beforeEach(function() {
+    affix("#container");
+    App.Templates["templates/some_model_list_item"] = jasmine.createSpy();
+    App.Templates["templates/some_model_list_item"].render = jasmine.createSpy();
+    App.Templates["templates/some_model_list"] = jasmine.createSpy();
+    App.Models.SomeModel = App.Models.BaseModel.extend({});
+    App.Collections.SomeModels = App.Collections.BaseCollection.extend({
+      model: App.Models.SomeModel
+    });
+    App.Views.SomeModelList = App.Views.BaseView.extend({});
+    App.Views.SomeModelListItem = App.Views.BaseView.extend({});
+    subject = new App.Views.CollectionView({
+      el: "#container",
+      modelName: "SomeModel",
+      collection: new Backbone.Collection([{ id: 1 }, { id: 2 }])
+    });
+  });
+
+  it("has a modelName", function() {
+    expect(subject.modelName).toEqual("SomeModel");
+  });
+
+  it("has a modelClass", function() {
+    expect(subject.modelClass).toEqual(App.Models.SomeModel);
+  });
+
+  it("has modelViews", function() {
+    expect(subject.modelViews).toEqual([]);
+  });
+
+  it("has a modelView", function() {
+    expect(subject.modelView).toEqual(App.Views.SomeModelListItem);
+  });
+
+  it("has a collection of models", function() {
+    var withDefaultCollection = new App.Views.CollectionView({
+      el: "#container",
+      modelName: "SomeModel"
+    });
+    expect(withDefaultCollection.collection).toBeTypeof(App.Collections.SomeModels);
+  });
+
+  it("has an emptyTemplate", function() {
+    expect(subject.emptyTemplate).toBeDefined();
+    expect(subject.emptyTemplate({ modelName: "SomeModel" })).toEqual('<li class="empty">There are no somemodels</li>');
+  });
+
+  describe("with options", function() {
+    var subject;
+    var OptionalCollection;
+    var OptionalView;
+    var SomeModel;
+
+    beforeEach(function() {
+      OptionalCollection = App.Collections.BaseCollection.extend();
+      OptionalView = Backbone.View.extend();
+      OptionalModel = Backbone.Model.extend();
+      SomeModel = Backbone.Model.extend();
+
+      subject = new App.Views.CollectionView({
+        el: "#container",
+        modelName: "SomeModel",
+        modelView: OptionalView,
+        collection: new OptionalCollection
+      });
+    });
+
+    it("accepts a collection", function() {
+      expect(subject.collection).toBeTypeof(OptionalCollection);
+    });
+
+    it("accepsts a modelView", function() {
+      expect(subject.modelView).toEqual(OptionalView);
+    });
+
+    describe("subclassed properties", function() {
+      var subject;
+      var SubclassedView;
+
+      beforeEach(function() {
+        SubclassedView = App.Views.CollectionView.extend({
+          initialize: function() {
+            this.modelName = "SomeModel";
+            this.modelView = OptionalView,
+            this.collection = new OptionalCollection;
+            this.modelClass = SomeModel;
+            App.Views.CollectionView.prototype.initialize.apply(this, arguments);
+          }
+        });
+        subject = new SubclassedView();
+      });
+
+      it("defers to the subclass modelName", function() {
+        expect(subject.modelName).toEqual("SomeModel");
+      });
+
+      it("defers to the subclass modelView", function() {
+        expect(subject.modelView).toEqual(OptionalView);
+      });
+
+      it("defers to the subclass collection", function() {
+        expect(subject.collection).toBeTypeof(OptionalCollection);
+      });
+
+      it("defers to the subclass modelClass", function() {
+        expect(subject.modelClass).toEqual(SomeModel);
+      });
+    });
+  });
+
+  describe("render", function() {
+    beforeEach(function() {
+      spyOn(subject, "render").and.callThrough();
+      spyOn(subject.$el, "empty");
+      subject.render();
+    });
+
+    it("empties the element", function() {
+      expect(subject.$el.empty).toHaveBeenCalled();
+    });
+
+    it("returns the element", function() {
+      expect(subject.render()).toEqual(subject.$el);
+    });
+
+    describe("when collection is empty", function() {
+      beforeEach(function() {
+        spyOn(subject.$el, "html");
+        spyOn(subject, "emptyTemplate").and.callThrough();
+        subject.collection.reset();
+        subject.render();
+      });
+
+      it("it renders the empty template", function() {
+        expect(subject.$el.html).toHaveBeenCalledWith(subject.emptyTemplate({ modelName: subject.modelName }));
+      });
+    });
+  });
+
+  describe("modelViewName", function() {
+    it("returns a model view name string", function() {
+      expect(subject.modelViewName()).toEqual("SomeModelListItem");
+    });
+  });
+
+  describe("createListItemView", function() {
+    beforeEach(function() {
+      spyOn(subject.modelView.prototype, "initialize").and.callThrough();
+      subject.createListItemView(subject.collection.first(), 0);
+    });
+
+    it("adds a view to the modelViews", function() {
+      expect(subject.modelViews.length).toEqual(1);
+      expect(subject.modelViews.first()).toBeTypeof(App.Views.SomeModelListItem);
+      expect(subject.modelView.prototype.initialize).toHaveBeenCalledWith({ model: subject.collection.first(), index: 0});
+    });
+  });
+
+  describe("renderListItemView", function() {
+    beforeEach(function() {
+      subject.createListItemView(subject.collection.first(), 0);
+      spyOn(subject.$el, "append");
+      subject.renderListItemView(subject.modelViews.first());
+    });
+
+    it("appends the rendered list item view to the element", function() {
+      expect(subject.$el.append).toHaveBeenCalledWith(subject.modelViews.first().render());
+    });
+  });
+
+  describe("createListItemViews", function() {
+    beforeEach(function() {
+      subject.createListItemViews();
+    });
+
+    it("creates a list item view for each item", function() {
+      expect(subject.modelViews.length).toEqual(2);
+    });
+
+    it("clears the modelViews array", function() {
+      subject.createListItemViews();
+      expect(subject.modelViews.length).toEqual(2);
+    });
+  });
+
+  describe("renderListItemViews", function() {
+    beforeEach(function() {
+      subject.createListItemViews();
+      spyOn(subject, "renderListItemView");
+      subject.renderListItemViews();
+    });
+
+    it("renders each list item view", function() {
+      expect(subject.renderListItemView.calls.count()).toEqual(2);
+    });
+  });
+
 });

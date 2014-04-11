@@ -23,15 +23,15 @@
     ]
   };
 
-  FakeServer.route("/user/:id", function(id) {
+  FakeServer.route("get", "/user/:id", function(id) {
     return FakeAPI.users.findWhere({ id: id });
   });
 
-  FakeServer.route("/user/:id/badges", function(id) {
+  FakeServer.route("get", "/user/:id/badges", function(id) {
     return FakeAPI.users.findWhere({ id: id }).badges;
   });
 
-  FakeServer.route("/user/:id/badges/:badgeId", function(id, badgeId) {
+  FakeServer.route("get", "/user/:id/badges/:badgeId", function(id, badgeId) {
     return FakeAPI.users.findWhere({ id: id }).badges.findWhere({ id: badgeId });
   });
 })();

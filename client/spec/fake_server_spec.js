@@ -4,8 +4,10 @@ describe("FakeServer", function() {
   var payload;
   var url;
   var request;
+  var verb;
   beforeEach(function() {
     subject = FakeServer;
+    verb = "get";
   });
 
   it("creates a fake xhr request instance", function() {
@@ -26,10 +28,20 @@ describe("FakeServer", function() {
 
   it("has routes", function() {
     expect(subject.routes).toBeObject();
+    expect(subject.routes.get).toBeObject();
+    expect(subject.routes.post).toBeObject();
+    expect(subject.routes.delete).toBeObject();
+    expect(subject.routes.put).toBeObject();
+    expect(subject.routes.patch).toBeObject();
   });
 
   it("has route matchers", function() {
     expect(subject.routeMatchers).toBeObject();
+    expect(subject.routeMatchers.get).toBeObject();
+    expect(subject.routeMatchers.post).toBeObject();
+    expect(subject.routeMatchers.delete).toBeObject();
+    expect(subject.routeMatchers.put).toBeObject();
+    expect(subject.routeMatchers.patch).toBeObject();
   });
 
   describe("initialize", function() {
@@ -39,11 +51,11 @@ describe("FakeServer", function() {
     });
 
     it("binds externally called functions", function() {
-      expect(_.bindAll).toHaveBeenCalledWith(subject, "handleCreateRequest", "handleRequest", "createRouteMatcher");
+      expect(_.bindAll).toHaveBeenCalledWith(subject, "handleRequest");
     });
 
     it("handles xhr requests", function() {
-      expect(subject.xhr.onCreate).toEqual(subject.handleCreateRequest);
+      expect(subject.xhr.onCreate).toEqual(subject.handleRequest);
     });
   });
 
@@ -56,15 +68,15 @@ describe("FakeServer", function() {
     describe("route", function() {
       beforeEach(function() {
         spyOn(subject, "createRouteMatcher");
-        subject.route(path, payload);
+        subject.route(verb, path, payload);
       });
 
-      it("creates a route with the given path and payload", function() {
-        expect(subject.routes).toHaveKey(path, payload);
+      it("creates a route with the given verb, path and payload", function() {
+        expect(subject.routes.get).toHaveKey(path, payload);
       });
 
       it("creates the route matcher", function() {
-        expect(subject.createRouteMatcher).toHaveBeenCalledWith(path);
+        expect(subject.createRouteMatcher).toHaveBeenCalledWith(verb, path);
       });
     });
 
@@ -72,16 +84,16 @@ describe("FakeServer", function() {
       var matcher;
 
       beforeEach(function() {
-        matcher = subject.createRouteMatcher(path);
+        matcher = subject.createRouteMatcher(verb, path);
       });
 
       it("adds a new route matcher", function() {
-        expect(subject.routeMatchers).toHaveKey(path);
+        expect(subject.routeMatchers.get).toHaveKey(path);
       });
 
       it("returns the route matcher", function() {
         expect(matcher).toBeDefined();
-        expect(matcher).toEqual(subject.routeMatchers[path]);
+        expect(matcher).toEqual(subject.routeMatchers.get[path]);
       });
 
       it("matches a matching path", function() {
@@ -94,11 +106,11 @@ describe("FakeServer", function() {
     });
   });
 
-  describe("handleCreateRequest", function() {
+  describe("handleRequest", function() {
     beforeEach(function(done) {
       request = "fake request";
-      spyOn(subject, "handleRequest").and.callFake(done);
-      subject.handleCreateRequest(request);
+      spyOn(subject, "respond").and.callFake(done);
+      subject.handleRequest(request);
     });
 
     it("adds the xhr to the requests", function() {
@@ -106,7 +118,7 @@ describe("FakeServer", function() {
     });
 
     it("handles the request", function() {
-      expect(subject.handleRequest).toHaveBeenCalled();
+      expect(subject.respond).toHaveBeenCalled();
     });
   });
 
@@ -150,11 +162,11 @@ describe("FakeServer", function() {
         url = {
           path: path
         };
-        subject.route(path, payload);
+        subject.route(verb, path, payload);
       });
 
       it("returns the payload", function() {
-        expect(subject.responsePayload(url)).toEqual(payload);
+        expect(subject.responsePayload(verb, url)).toEqual(payload);
       });
     });
 
@@ -167,11 +179,11 @@ describe("FakeServer", function() {
         url = {
           path: path
         };
-        subject.route(path, payload);
+        subject.route(verb, path, payload);
       });
 
       it("returns the return value of the function", function() {
-        expect(subject.responsePayload(url)).toEqual(payload());
+        expect(subject.responsePayload(verb, url)).toEqual(payload());
       });
 
       describe("dynamic segments", function() {
@@ -183,11 +195,11 @@ describe("FakeServer", function() {
           url = {
             path: "/dynamic/test/12"
           };
-          subject.route(path, payload);
+          subject.route(verb, path, payload);
         });
 
         it("passes the dynamic segments to the route function, parsing numbers", function() {
-          expect(subject.responsePayload(url)).toEqual({ value: "test", numeric: 12 });
+          expect(subject.responsePayload(verb, url)).toEqual({ value: "test", numeric: 12 });
         });
       });
     });
@@ -200,20 +212,20 @@ describe("FakeServer", function() {
       url = {
         path: path
       };
-      subject.route(url.path, payload);
+      subject.route(verb, url.path, payload);
     });
 
     it("determines if the route is defined", function() {
-      expect(subject.hasRoute(url)).toBeTrue();
-      expect(subject.hasRoute({ path: "/nonexistent" })).toBeFalse();
+      expect(subject.hasRoute(verb, url)).toBeTrue();
+      expect(subject.hasRoute(verb, { path: "/nonexistent" })).toBeFalse();
     });
   });
 
-  describe("handleRequest", function() {
+  describe("respond", function() {
     beforeEach(function() {
       path = "/path";
       payload = "payload";
-      subject.route(path, payload);
+      subject.route(verb, path, payload);
     });
 
     describe("when the url matches a route", function() {
@@ -221,10 +233,11 @@ describe("FakeServer", function() {
         subject.requests.length = 0;
         subject.requests.push({
           respond: jasmine.createSpy(),
-          url: path
+          url: path,
+          method: "GET"
         });
         request = subject.requests.last();
-        subject.handleRequest(0);
+        subject.respond(0);
       });
 
       it("responds to the request with the payload", function() {
@@ -237,10 +250,11 @@ describe("FakeServer", function() {
         subject.requests.length = 0;
         subject.requests.push({
           respond: jasmine.createSpy(),
-          url: "/not-found"
+          url: "/not-found",
+          method: "GET"
         });
         request = subject.requests.last();
-        subject.handleRequest(0);
+        subject.respond(0);
       });
 
       it("responds to the request with the payload", function() {

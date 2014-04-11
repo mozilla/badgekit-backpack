@@ -3,63 +3,78 @@
   requests: [],
   JSONHeaders: { "Content-Type": "application/json" },
   NotFoundHeaders: { "Content-Type": "text/plain" },
-  routes: {},
-  routeMatchers: {},
+  routes: {
+    get: {},
+    post: {},
+    delete: {},
+    put: {},
+    patch: {}
+  },
+  routeMatchers: {
+    get: {},
+    post: {},
+    delete: {},
+    put: {},
+    patch: {}
+  },
 
   initialize: function() {
-    _.bindAll(this,
-      "handleCreateRequest",
-      "handleRequest",
-      "createRouteMatcher");
-    this.xhr.onCreate = this.handleCreateRequest;
+    _.bindAll(this, "handleRequest");
+    this.xhr.onCreate = this.handleRequest;
   },
 
-  route: function(path, payload) {
-    this.routes[path] = payload;
-    this.createRouteMatcher(path);
+  route: function(verb, path, payload) {
+    verb = verb.toLowerCase();
+    this.routes[verb][path] = payload;
+    this.createRouteMatcher(verb, path);
   },
 
-  createRouteMatcher: function(path) {
+  createRouteMatcher: function(verb, path) {
     var reString = "^\\/?" + path.split("/").compact().map(function(segment) {
       return segment.match(/^:/) ? segment.replace(/^.+$/, "([a-z0-9_-]+)") : segment;
     }).join("\\/") + "\\/?$";
     var pattern = new RegExp(reString);
-    return this.routeMatchers[path] = pattern;
+    return this.routeMatchers[verb][path] = pattern;
   },
 
-  handleCreateRequest: function(request) {
+  handleRequest: function(request) {
     this.requests.push(request);
     var index = this.requests.indexOf(request);
     setTimeout(function() {
-      FakeServer.handleRequest(index);
+      FakeServer.respond(index);
     }, 1);
   },
 
-  handleRequest: function(index) {
+  respond: function(index) {
     var request = this.requests[index];
+    var verb = request.method.toLowerCase();
     var url = this.parseUrl(request.url);
-    if (this.hasRoute(url)) {
-      request.respond(200, this.JSONHeaders, JSON.stringify(this.responsePayload(url)));
+
+    if (this.hasRoute(verb, url)) {
+      request.respond(200, this.JSONHeaders, JSON.stringify(this.responsePayload(verb, url)));
     } else {
       request.respond(404, this.NotFoundHeaders, "Page Not Found");
     }
   },
 
-  hasRoute: function(url) {
-    var hasRoute = false;
-    this.routeMatchers.each(function(matcher, key) {
-      if (matcher.test(url.path)) hasRoute = true;
+  hasRoute: function(verb, url) {
+    var hasRoute;
+    this.routeMatchers[verb].each(function(matcher, key) {
+      if (matcher.test(url.path)) {
+        hasRoute = true;
+        return false;
+      }
     });
-    return hasRoute;
+    return !!hasRoute;
   },
 
-  responsePayload: function(url) {
+  responsePayload: function(verb, url) {
     var route;
     var pattern;
 
-    this.routeMatchers.each(function(matcher, key) {
+    this.routeMatchers[verb].each(function(matcher, key) {
       if (matcher.test(url.path)) {
-        route = FakeServer.routes[key];
+        route = FakeServer.routes[verb][key];
         pattern = matcher;
       }
     });

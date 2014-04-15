@@ -56,7 +56,7 @@ function requestWithBody(method) {
     const url = this.prefix + urlSuffix
     const options = urlUtil.parse(url)
     return new Promise(function (resolve, reject) {
-      const jsonFormData = JSON.stringify(formData)
+      const jsonFormData = Buffer(JSON.stringify(formData))
       options.method = method.toUpperCase()
       options.headers = {
         'content-type': 'application/json',

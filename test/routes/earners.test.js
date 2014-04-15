@@ -31,6 +31,24 @@ prepare({db: true}).then(function(api) {
       })
   })
 
+  test('PUT /users/:userId', function (t) {
+    const update = {
+      age: '∞',
+      sign: null,
+      birthday: null,
+    }
+    api.put('/users/brian@mozillafoundation.org', update)
+      .then(function(res) {
+        t.same(res.statusCode, 200)
+        return api.get('/users/brian@mozillafoundation.org')
+      })
+
+      .then(function(res) {
+        t.same(res.body.metadata, {age: '∞'})
+        t.end()
+      })
+  })
+
   test('DELETE /users/:userId', function (t) {
     api.del('/users/delete-me')
       .then(function(res) {
@@ -44,7 +62,6 @@ prepare({db: true}).then(function(api) {
         t.same(res.statusCode, 404)
         t.end()
       })
-
   })
 
   test('--close--', api.finish.bind(api))

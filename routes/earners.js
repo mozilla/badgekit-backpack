@@ -4,13 +4,15 @@ const Earners = require('../models/earners')
 const EarnerData = require('../models/earner-data')
 
 const NotFoundError = restify.NotFoundError
+const keys = Object.keys
+
 
 module.exports = function earnerRoutes(server) {
   server.post('/users', createEarner)
   function createEarner(req, res, next) {
     const id = req.body.id
     const metadata = req.body.metadata
-    const metadataRows = Object.keys(metadata).map(function (key) {
+    const metadataRows = keys(metadata).map(function (key) {
       return {
         earnerId: id,
         key: key,
@@ -48,11 +50,43 @@ module.exports = function earnerRoutes(server) {
       })
 
       .catch(NotFoundError, next)
-
       .catch(res.logInternalError('DELETE /users/:userId – Error deleting user'))
-
   }
 
+  server.put('/users/:userId', updateEarner)
+  function updateEarner(req, res, next) {
+    const id = req.params.userId
+    const metadata = req.body
+
+    Earners.getOne({id: id}, {relationships: true})
+      .then(function(earner) {
+        if (!earner)
+          throw new NotFoundError('Could not find earner with id `' + req.params.userId + '`')
+
+        return Promise.all(keys(metadata).map(function (key) {
+          const value = metadata[key]
+          if (value === null) {
+            return EarnerData.del({
+              earnerId: id,
+              key: key
+            })
+          }
+
+          return EarnerData.put({
+            earnerId: id,
+            key: key,
+            value: value,
+          }, {uniqueKey: ['earnerId', 'key']})
+        }))
+      })
+
+      .then(function(results) {
+        return res.send(200, {status: 'updated'})
+      })
+
+      .catch(NotFoundError, next)
+      .catch(res.logInternalError('DELETE /users/:userId – Error deleting user'))
+  }
 
   server.del('/users/:userId', deleteEarner)
   function deleteEarner(req, res, next) {
@@ -71,7 +105,6 @@ module.exports = function earnerRoutes(server) {
       })
 
       .catch(NotFoundError, next)
-
       .catch(res.logInternalError('DELETE /users/:userId – Error deleting user'))
   }
 }

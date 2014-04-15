@@ -1,9 +1,12 @@
 describe("App.Controllers.Dashboard", function() {
   var subject;
   var userAttributes;
+  var $myBadges;
+  var $badgesPaginationl
   beforeEach(function() {
     userAttributes = _.clone(FakeAPI.users.first());
-    affix("#my-badges");
+    $myBadges = affix("#my-badges");
+    $badgesPagination = affix("#badges-pagination");
     subject = App.Controllers.Dashboard;
   });
 
@@ -20,40 +23,100 @@ describe("App.Controllers.Dashboard", function() {
     });
   });
 
-  describe("cacheIndexElements", function() {
-    beforeEach(function() {
-      subject.cacheIndexElements();
+  describe("index", function() {
+    describe("initIndex", function() {
+      beforeEach(function() {
+        spyOn(subject, "cacheIndexElements");
+        spyOn(subject, "fetchBadges");
+        subject.initIndex({ id: 1 });
+      });
+
+      it("caches the index elements", function() {
+        expect(subject.cacheIndexElements).toHaveBeenCalled();
+      });
+
+      it("sets the user", function() {
+        expect(subject.user).toBeTypeof(App.Models.User);
+        expect(subject.user.id).toEqual(1);
+      });
+
+      it("fetches the user", function() {
+        expect(subject.fetchBadges).toHaveBeenCalled();
+      });
     });
 
-    it("has a myBadges reference", function() {
-      expect(subject.myBadges).toBeJqueryWrapped("#my-badges");
-    });
-  });
+    describe("fetchBadges", function() {
+      beforeEach(function() {
+        subject.user = new App.Models.User({ id: 1 });
+        spyOn(subject.user.get("badges"), "fetch").and.returnValue(promiseStub);
+        subject.fetchBadges();
+      });
 
-  describe("renderBadges", function() {
-    beforeEach(function() {
-      App.CurrentUser = new App.Models.User(userAttributes);
-      subject.renderBadges();
-    });
+      it("fetches the user", function() {
+        expect(subject.user.get("badges").fetch).toHaveBeenCalled();
+      });
 
-    it("creates a badges view", function() {
-      expect(subject.badgesView).toBeTypeof(App.Views.Badges);
-    });
+      it("calls handleBadgesFetchSuccess when done", function() {
+        expect(promiseStub.done).toHaveBeenCalledWith(subject.handleBadgesFetchSuccess);
+      });
 
-    it("renders the badges view", function() {
-      var size = userAttributes.badges.length;
-      var expectedChildCount = Math.floor(size + (size / 4));
-      expect(subject.myBadges.children().length).toEqual(expectedChildCount);
-    });
-  });
-
-  describe("renderBadgeFetchFailure", function() {
-    beforeEach(function() {
-      subject.renderBadgeFetchFailure();
+      it("calls handleBadgeFetchFailure when it fails", function() {
+        expect(promiseStub.fail).toHaveBeenCalledWith(subject.handleBadgeFetchFailure);
+      });
     });
 
-    it("renders an error message", function() {
-      expect(subject.myBadges).toHaveText("There was an error fetching your badges");
+    describe("cacheIndexElements", function() {
+      beforeEach(function() {
+        subject.cacheIndexElements();
+      });
+
+      it("has a myBadges reference", function() {
+        expect(subject.myBadges).toBeJqueryWrapped("#my-badges");
+      });
+    });
+
+    describe("handleBadgesFetchSuccess", function() {
+      beforeEach(function() {
+        spyOn(subject, "renderBadges");
+        subject.handleBadgesFetchSuccess();
+      });
+
+      it("renders the badges", function() {
+        expect(subject.renderBadges).toHaveBeenCalled();
+      });
+
+      it("creates a paginator view", function() {
+        expect(subject.badgePaginator).toBeTypeof(App.Views.Paginator);
+        expect(subject.badgePaginator.$el).toBeJqueryWrapped("#badges-pagination");
+        expect(subject.badgePaginator.collection).toEqual(subject.user.get("badges"));
+      });
+    });
+
+    describe("renderBadges", function() {
+      beforeEach(function() {
+        subject.user = new App.Models.User(userAttributes);
+        subject.renderBadges();
+      });
+
+      it("creates a badges view", function() {
+        expect(subject.badgesView).toBeTypeof(App.Views.Badges);
+      });
+
+      it("renders the badges view", function() {
+        var size = userAttributes.badges.length;
+        var expectedChildCount = Math.floor(size + (size / 4));
+        expect(subject.myBadges.children().length).toEqual(expectedChildCount);
+      });
+    });
+
+    describe("handleBadgeFetchFailure", function() {
+      beforeEach(function() {
+        subject.handleBadgeFetchFailure();
+      });
+
+      it("renders an error message", function() {
+        expect(subject.myBadges).toHaveText("There was an error fetching your badges");
+      });
     });
   });
 });

@@ -4,6 +4,7 @@
   position: relative;
   height: 100%;
   background-color: $grey8;
+  margin-bottom: 2em;
 }
 
 #header {
@@ -54,7 +55,6 @@
 
 #content {
   @include row;
-  height: em(500);
 
   h2 {
     text-align: center;
@@ -211,6 +211,43 @@
 
     button {
       float: right;
+    }
+  }
+}
+
+.pagination {
+  @include row;
+  padding: 0 0 1em 0;
+
+  ul {
+    @extend %horizontal-list;
+    @include fill-parent;
+    text-align: center;
+  }
+
+  a {
+    display: inline-block;
+    padding: 0 .5em;
+    border: solid 1px $pagination-border-color;
+    cursor: pointer;
+    background: {
+      color: $pagination-bg-color;
+    }
+
+    &.current {
+      color: $pagination-current-color;
+      cursor: default;
+      background: {
+        color: $pagination-current-bg-color;
+      }
+    }
+
+    &.spacer {
+      color: transparent;
+      border: solid 1px transparent;
+      background: {
+        color: transparent;
+      }
     }
   }
 }

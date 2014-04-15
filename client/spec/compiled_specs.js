@@ -1,3 +1,33 @@
+describe("App", function() {
+  var subject;
+  beforeEach(function() {
+    subject = App;
+  });
+
+  it("has a Models namespace", function() {
+    expect(subject.Models).toBeObject();
+  });
+
+  it("has a Collections namespace", function() {
+    expect(subject.Collections).toBeObject();
+  });
+
+  it("has a Views namespace", function() {
+    expect(subject.Views).toBeObject();
+  });
+
+  it("has a Controllers namespace", function() {
+    expect(subject.Views).toBeObject();
+  });
+
+  it("has a Dispatcher", function() {
+    expect(subject.Dispatcher).toBeDefined();
+    expect(subject.Dispatcher.on).toBeDefined();
+    expect(subject.Dispatcher.off).toBeDefined();
+    expect(subject.Dispatcher.trigger).toBeDefined();
+  });
+});
+
 describe("FakeServer", function() {
   var subject;
   var path;
@@ -186,6 +216,28 @@ describe("FakeServer", function() {
         expect(subject.responsePayload(verb, url)).toEqual(payload());
       });
 
+      describe("with query params", function() {
+        var params;
+        beforeEach(function() {
+          params = {
+            key: "value",
+            anotherKey: "anotherValue"
+          };
+          path = "/function/:id";
+          payload = jasmine.createSpy().and.returnValue("payload");
+          url = {
+            path: "/function/1",
+            params: params
+          };
+          subject.route(verb, path, payload);
+          subject.responsePayload(verb, url);
+        });
+
+        it("passes the query params as the last argument", function() {
+          expect(payload).toHaveBeenCalledWith(1, params);
+        });
+      });
+
       describe("dynamic segments", function() {
         beforeEach(function() {
           path = "/dynamic/:value/:numeric";
@@ -264,62 +316,15 @@ describe("FakeServer", function() {
   });
 });
 
-describe("App.Models.User", function() {
-  var subject;
-  var userAttributes;
-  beforeEach(function() {
-    userAttributes = _.clone(FakeAPI.users.first());
-    subject = new App.Models.User(userAttributes);
-  });
-
-  it("has a urlRoot", function() {
-    expect(subject.urlRoot).toEqual("/user");
-    expect(subject.url()).toEqual("/user/" + subject.id);
-  });
-
-  describe("relationships", function() {
-    it("wraps badges in a Badges collection", function() {
-      expect(subject.get("badges")).toBeTypeof(App.Collections.Badges);
-    });
-  });
-});
-
-describe("App", function() {
-  var subject;
-  beforeEach(function() {
-    subject = App;
-  });
-
-  it("has a Models namespace", function() {
-    expect(subject.Models).toBeObject();
-  });
-
-  it("has a Collections namespace", function() {
-    expect(subject.Collections).toBeObject();
-  });
-
-  it("has a Views namespace", function() {
-    expect(subject.Views).toBeObject();
-  });
-
-  it("has a Controllers namespace", function() {
-    expect(subject.Views).toBeObject();
-  });
-
-  it("has a Dispatcher", function() {
-    expect(subject.Dispatcher).toBeDefined();
-    expect(subject.Dispatcher.on).toBeDefined();
-    expect(subject.Dispatcher.off).toBeDefined();
-    expect(subject.Dispatcher.trigger).toBeDefined();
-  });
-});
-
 describe("App.Controllers.Dashboard", function() {
   var subject;
   var userAttributes;
+  var $myBadges;
+  var $badgesPaginationl
   beforeEach(function() {
     userAttributes = _.clone(FakeAPI.users.first());
-    affix("#my-badges");
+    $myBadges = affix("#my-badges");
+    $badgesPagination = affix("#badges-pagination");
     subject = App.Controllers.Dashboard;
   });
 
@@ -336,40 +341,100 @@ describe("App.Controllers.Dashboard", function() {
     });
   });
 
-  describe("cacheIndexElements", function() {
-    beforeEach(function() {
-      subject.cacheIndexElements();
+  describe("index", function() {
+    describe("initIndex", function() {
+      beforeEach(function() {
+        spyOn(subject, "cacheIndexElements");
+        spyOn(subject, "fetchBadges");
+        subject.initIndex({ id: 1 });
+      });
+
+      it("caches the index elements", function() {
+        expect(subject.cacheIndexElements).toHaveBeenCalled();
+      });
+
+      it("sets the user", function() {
+        expect(subject.user).toBeTypeof(App.Models.User);
+        expect(subject.user.id).toEqual(1);
+      });
+
+      it("fetches the user", function() {
+        expect(subject.fetchBadges).toHaveBeenCalled();
+      });
     });
 
-    it("has a myBadges reference", function() {
-      expect(subject.myBadges).toBeJqueryWrapped("#my-badges");
-    });
-  });
+    describe("fetchBadges", function() {
+      beforeEach(function() {
+        subject.user = new App.Models.User({ id: 1 });
+        spyOn(subject.user.get("badges"), "fetch").and.returnValue(promiseStub);
+        subject.fetchBadges();
+      });
 
-  describe("renderBadges", function() {
-    beforeEach(function() {
-      App.CurrentUser = new App.Models.User(userAttributes);
-      subject.renderBadges();
-    });
+      it("fetches the user", function() {
+        expect(subject.user.get("badges").fetch).toHaveBeenCalled();
+      });
 
-    it("creates a badges view", function() {
-      expect(subject.badgesView).toBeTypeof(App.Views.Badges);
-    });
+      it("calls handleBadgesFetchSuccess when done", function() {
+        expect(promiseStub.done).toHaveBeenCalledWith(subject.handleBadgesFetchSuccess);
+      });
 
-    it("renders the badges view", function() {
-      var size = userAttributes.badges.length;
-      var expectedChildCount = Math.floor(size + (size / 4));
-      expect(subject.myBadges.children().length).toEqual(expectedChildCount);
-    });
-  });
-
-  describe("renderBadgeFetchFailure", function() {
-    beforeEach(function() {
-      subject.renderBadgeFetchFailure();
+      it("calls handleBadgeFetchFailure when it fails", function() {
+        expect(promiseStub.fail).toHaveBeenCalledWith(subject.handleBadgeFetchFailure);
+      });
     });
 
-    it("renders an error message", function() {
-      expect(subject.myBadges).toHaveText("There was an error fetching your badges");
+    describe("cacheIndexElements", function() {
+      beforeEach(function() {
+        subject.cacheIndexElements();
+      });
+
+      it("has a myBadges reference", function() {
+        expect(subject.myBadges).toBeJqueryWrapped("#my-badges");
+      });
+    });
+
+    describe("handleBadgesFetchSuccess", function() {
+      beforeEach(function() {
+        spyOn(subject, "renderBadges");
+        subject.handleBadgesFetchSuccess();
+      });
+
+      it("renders the badges", function() {
+        expect(subject.renderBadges).toHaveBeenCalled();
+      });
+
+      it("creates a paginator view", function() {
+        expect(subject.badgePaginator).toBeTypeof(App.Views.Paginator);
+        expect(subject.badgePaginator.$el).toBeJqueryWrapped("#badges-pagination");
+        expect(subject.badgePaginator.collection).toEqual(subject.user.get("badges"));
+      });
+    });
+
+    describe("renderBadges", function() {
+      beforeEach(function() {
+        subject.user = new App.Models.User(userAttributes);
+        subject.renderBadges();
+      });
+
+      it("creates a badges view", function() {
+        expect(subject.badgesView).toBeTypeof(App.Views.Badges);
+      });
+
+      it("renders the badges view", function() {
+        var size = userAttributes.badges.length;
+        var expectedChildCount = Math.floor(size + (size / 4));
+        expect(subject.myBadges.children().length).toEqual(expectedChildCount);
+      });
+    });
+
+    describe("handleBadgeFetchFailure", function() {
+      beforeEach(function() {
+        subject.handleBadgeFetchFailure();
+      });
+
+      it("renders an error message", function() {
+        expect(subject.myBadges).toHaveText("There was an error fetching your badges");
+      });
     });
   });
 });
@@ -389,8 +454,19 @@ describe("App.Models.Badge", function() {
 
 describe("App.Collections.Badges", function() {
   var subject;
+  beforeEach(function() {
+    subject = new App.Collections.Badges;
+  });
 
-  describe("when empty", function() {
+  it("has a page", function() {
+    expect(subject.page).toEqual(1);
+  });
+
+  it("has a perPage value", function() {
+    expect(subject.perPage).toBeNumber();
+  });
+
+  describe("when there is no user id", function() {
     beforeEach(function() {
       subject = new App.Collections.Badges();
     });
@@ -400,15 +476,19 @@ describe("App.Collections.Badges", function() {
     });
   });
 
-  describe("when not empty", function() {
+  describe("when there is a userId", function() {
     var badgeAttributes;
+    var userId;
     beforeEach(function() {
       badgeAttributes = FakeAPI.users.first().badges.first();
       subject = new App.Collections.Badges([badgeAttributes]);
+      userId = 1;
+      subject.userId = userId;
     });
 
     it("has a url", function() {
-      expect(subject.url()).toEqual("/user/" + subject.first().get("earnerId") + "/badges");
+      var expectedURL = "/user/" + subject.userId + "/badges?page=" + subject.page + "&perPage=" + subject.perPage;
+      expect(subject.url()).toEqual(expectedURL);
     });
   });
 });
@@ -452,6 +532,38 @@ describe("App.Models.BaseModel", function() {
       expect(subject.isPersisted()).toBeFalse();
       spyOn(subject, "isNew").and.returnValue(false);
       expect(subject.isPersisted()).toBeTrue();
+    });
+  });
+});
+
+describe("App.Models.User", function() {
+  var subject;
+  beforeEach(function() {
+    subject = new App.Models.User({ id: 1 });
+  });
+
+  it("has a urlRoot", function() {
+    expect(subject.urlRoot).toEqual("/user");
+    expect(subject.url()).toEqual("/user/" + subject.id);
+  });
+
+  it("creates an empty badges collection", function() {
+    expect(subject.get("badges")).toBeTypeof(App.Collections.Badges);
+  });
+
+  it("sets the userId on the badge collection", function() {
+    expect(subject.get("badges").userId).toEqual(subject.id);
+  });
+
+  describe("relationships", function() {
+    var userAttributes;
+    beforeEach(function() {
+      userAttributes = _.clone(FakeAPI.users.first());
+      subject = new App.Models.User(userAttributes);
+    });
+
+    it("wraps badges in a Badges collection", function() {
+      expect(subject.get("badges")).toBeTypeof(App.Collections.Badges);
     });
   });
 });
@@ -651,69 +763,6 @@ describe("App.Views.Badges", function() {
 
     it("renders the list item grouped", function() {
       expect(subject.renderListItemViewGrouped).toHaveBeenCalled();
-    });
-  });
-});
-
-describe("App.Views.BaseView", function() {
-  var subject;
-  var $element;
-
-  beforeEach(function() {
-    affix("#container");
-    $element = affix("#element");
-    subject = new App.Views.BaseView({ el: "#container" });
-  });
-
-  describe("initialize", function() {
-    it("has an index if passed", function() {
-      subject = new App.Views.BaseView({ el: "#container", index: 3 });
-      expect(subject.index).toEqual(3);
-    });
-  });
-
-  describe("toggleLoading", function() {
-    beforeEach(function() {
-      subject.toggleLoading();
-    });
-
-    it("sets the isLoading flag", function() {
-      expect(subject.isLoading).toBeTrue();
-    });
-
-    it("adds the loading class", function() {
-      expect(subject.$el).toHaveClass("loading");
-    });
-
-    it("creates a loading mask", function() {
-      expect(subject.$el.find(".loading-mask")).toExist();
-      expect(subject.loadingMask).toBeJqueryWrapped();
-    });
-
-    describe("already loading", function() {
-      beforeEach(function() {
-        subject.toggleLoading();
-      });
-
-      it("sets isLoading to false", function() {
-        expect(subject.isLoading).toBeFalse();
-      });
-
-      it("removes the loading mask", function() {
-        expect(subject.$el.find(".loading-mask")).not.toExist();
-        expect(subject.loadingMask).toBeUndefined();
-      });
-
-      it("removes the loading class", function() {
-        expect(subject.$el).not.toHaveClass("loading");
-      });
-    });
-
-    describe("with element", function() {
-      it("sets the isLoading flag", function() {
-        subject.toggleLoading($element);
-        expect($element.isLoading).toBeTrue();
-      });
     });
   });
 });
@@ -918,4 +967,260 @@ describe("App.Views.CollectionView", function() {
     });
   });
 
+});
+
+describe("App.Views.Paginator", function() {
+  var subject;
+  var badgesAttributes;
+  var badges
+  beforeEach(function() {
+    affix("#container");
+    badgesAttributes = _.clone(FakeAPI.users.first().badges);
+    badges = new App.Collections.Badges(badgesAttributes);
+    subject = new App.Views.Paginator({
+      el: "#container",
+      collection: badges,
+      totalCount: 50
+    });
+  });
+
+  it("has a template", function() {
+    expect(subject.template).toBeDefined();
+    expect(subject.template).toEqual(App.Templates.paginator);
+  });
+
+  it("has a current page", function() {
+    expect(subject.currentPage).toEqual(1);
+  });
+
+  it("sets the total count", function() {
+    expect(subject.totalCount).toEqual(50);
+  });
+
+  it("sets the total count to 0 if not passed", function() {
+    subject = new App.Views.Paginator({
+      el: "#container",
+      collection: badges
+    });
+    expect(subject.totalCount).toEqual(0);
+  });
+
+  describe("initialize", function() {
+    beforeEach(function() {
+      spyOn(_, "bindAll");
+      spyOn(subject, "render");
+      subject.initialize();
+    });
+
+    it("binds externally called methods", function() {
+      expect(_.bindAll).toHaveBeenCalledWith(subject, "createPageObject");
+    });
+
+    it("renders the view", function() {
+      expect(subject.render).toHaveBeenCalled();
+    });
+  });
+
+  describe("pageCount", function() {
+    it("returns the length of the collection divided by the perPage value rounded up", function() {
+      var pageCount = Math.ceil(badges.length / badges.perPage);
+      expect(subject.pageCount()).toEqual(pageCount);
+    });
+  });
+
+  describe("pages", function() {
+    it("returns an array of page objects", function() {
+      subject.pages().each(function(page, i) {
+        var num = i + 1;
+        var current = subject.currentPage === num;
+        expect(page.number).toEqual(num);
+        if (current) {
+          expect(page.className).toEqual("current");
+        } else {
+          expect(page.className).toEqual("page");
+        }
+      });
+    });
+  });
+
+  describe("render", function() {
+    beforeEach(function() {
+      spyOn(subject, "template").and.callThrough();
+    });
+
+    it("does nothing if the collection is empty", function() {
+      subject.$el.empty();
+      spyOn(subject.collection, "isEmpty").and.returnValue(true);
+      subject.render();
+      expect(subject.$el.children().length).toEqual(0);
+    });
+
+    it("renders the template", function() {
+      subject.render();
+      expect(subject.$el.children().length).toBeGreaterThan(0);
+    });
+
+    it("passes the page data to the template", function() {
+      subject.render();
+      expect(subject.template).toHaveBeenCalledWith({
+        pages: subject.pages(),
+        isNotFirstPage: subject.currentPage !== 1,
+        isNotLastPage: subject.currentPage !== subject.pageCount()
+      });
+    });
+
+    it("renders the page class names", function() {
+      subject.render();
+      expect(subject.$el.find(".page").length).toEqual(subject.pageCount() - 1);
+      expect(subject.$el.find(".current").length).toEqual(1);
+    });
+
+    it("renders the page number as a data attribute", function() {
+      subject.render();
+      expect(subject.$el.find("a").eq(1).data()).toEqual({ pageNumber: 1 });
+    });
+
+    describe("on the first page", function() {
+      it("renders a link for each page and the next link", function() {
+        subject.render();
+        expect(subject.$el.find("ul").children().length).toEqual(subject.pageCount() + 2);
+        expect(subject.$el.find("a:first")).toHaveClass("spacer");
+        expect(subject.$el.find("a:last")).toHaveClass("next");
+      });
+    });
+
+    describe("on the last page", function() {
+      it("renders a link for each page and the previous link", function() {
+        subject.currentPage = subject.pageCount();
+        subject.render();
+        expect(subject.$el.find("ul").children().length).toEqual(subject.pageCount() + 2);
+        expect(subject.$el.find("a:last")).toHaveClass("spacer");
+        expect(subject.$el.find("a:first")).toHaveClass("previous");
+      });
+    });
+
+    describe("on a middle page", function() {
+      it("renders a link for each page and the previous and next link", function() {
+        subject.currentPage = 2;
+        subject.render();
+        expect(subject.$el.find("ul").children().length).toEqual(subject.pageCount() + 2);
+        expect(subject.$el.find("a:first")).toHaveClass("previous");
+        expect(subject.$el.find("a:last")).toHaveClass("next");
+      });
+    });
+  });
+
+  describe("handlePageClick", function() {
+    var pageLink;
+    beforeEach(function() {
+      subject.render();
+      spyOn(subject, "render");
+      spyOn(subject.collection, "fetch");
+      pageLink = subject.$el.find("a").eq(2);
+      eventStub.mixin({ target: pageLink[0] });
+      subject.handlePageClick(eventStub);
+    });
+
+    it("sets the current page to the clicked page", function() {
+      expect(subject.currentPage).toEqual(pageLink.data().pageNumber);
+    });
+
+    it("renders the view", function() {
+      expect(subject.render).toHaveBeenCalled();
+    });
+
+    it("sets the page on the collection", function() {
+      expect(subject.collection.page).toEqual(pageLink.data().pageNumber);
+    });
+
+    it("fetches the collection", function() {
+      expect(subject.collection.fetch).toHaveBeenCalled();
+    });
+  });
+
+  describe("handlePreviousClick", function() {
+    var pageLink;
+    beforeEach(function() {
+      subject.currentPage = 3;
+      subject.collection.page = 3;
+      subject.render();
+      spyOn(subject, "render");
+      spyOn(subject.collection, "fetch");
+      pageLink = subject.$el.find(".previous");
+      eventStub.mixin({ target: pageLink[0] });
+      subject.handlePreviousClick(eventStub);
+    });
+
+    it("sets the current page to the previous page", function() {
+      expect(subject.currentPage).toEqual(2);
+    });
+
+    it("renders the view", function() {
+      expect(subject.render).toHaveBeenCalled();
+    });
+
+    it("sets the page on the collection", function() {
+      expect(subject.collection.page).toEqual(2);
+    });
+
+    it("fetches the collection", function() {
+      expect(subject.collection.fetch).toHaveBeenCalled();
+    });
+  });
+
+  describe("handleNextClick", function() {
+    var pageLink;
+    beforeEach(function() {
+      spyOn(subject.collection, "fetch");
+      subject.currentPage = 2;
+      subject.collection.page = 2;
+      subject.render();
+      spyOn(subject, "render");
+      pageLink = subject.$el.find(".next");
+      eventStub.mixin({ target: pageLink[0] });
+      subject.handleNextClick(eventStub);
+    });
+
+    it("sets the current page to the next page", function() {
+      expect(subject.currentPage).toEqual(3);
+    });
+
+    it("renders the view", function() {
+      expect(subject.render).toHaveBeenCalled();
+    });
+
+    it("sets the page on the collection", function() {
+      expect(subject.collection.page).toEqual(3);
+    });
+
+    it("fetches the collection", function() {
+      expect(subject.collection.fetch).toHaveBeenCalled();
+    });
+  });
+
+  describe("events", function() {
+    beforeEach(function() {
+      spyOn(subject.collection, "fetch");
+    });
+
+    it("handles clicking the page links", function() {
+      subject.render();
+      var pagelink = subject.$el.find("a").eq(1).trigger("click");
+      expect(subject.currentPage).toEqual(pagelink.data().pageNumber);
+    });
+
+    it("handles clicking the previous links", function() {
+      subject.currentPage = 2;
+      subject.render();
+      var pagelink = subject.$el.find(".previous").trigger("click");
+      expect(subject.currentPage).toEqual(1);
+    });
+
+    it("handles clicking the next links", function() {
+      subject.currentPage = 2;
+      subject.render();
+      var pagelink = subject.$el.find(".next").trigger("click");
+      expect(subject.currentPage).toEqual(3);
+    });
+  });
 });

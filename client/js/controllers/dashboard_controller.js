@@ -8,10 +8,23 @@
 
   initIndex: function(userAttributes) {
     this.cacheIndexElements();
-    App.CurrentUser = new App.Models.User(userAttributes);
-    App.CurrentUser.fetch()
-      .fail(this.renderBadgeFetchFailure)
-      .done(this.renderBadges);
+    this.user = new App.Models.User(userAttributes);
+    this.fetchBadges();
+  },
+
+  fetchBadges: function() {
+    this.user.get("badges").fetch()
+      .fail(this.handleBadgeFetchFailure)
+      .done(this.handleBadgesFetchSuccess);
+  },
+
+  handleBadgesFetchSuccess: function() {
+    this.renderBadges();
+    this.badgePaginator = new App.Views.Paginator({
+      el: "#badges-pagination",
+      collection: this.user.get("badges"),
+      totalCount: this.user.get("badgeCount")
+    });
   },
 
   cacheIndexElements: function() {
@@ -20,14 +33,13 @@
 
   renderBadges: function() {
     this.badgesView = new App.Views.Badges({
-      collection: App.CurrentUser.get("badges"),
+      collection: this.user.get("badges"),
       el: this.myBadges
     });
     this.badgesView.render();
   },
 
-  renderBadgeFetchFailure: function(response) {
-    console.log(response);
+  handleBadgeFetchFailure: function(response) {
     this.myBadges.html("<li>There was an error fetching your badges</li>");
   }
 }).initialize();

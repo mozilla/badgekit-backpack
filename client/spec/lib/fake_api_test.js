@@ -39,13 +39,8 @@
     return FakeAPI.users.findWhere({ id: id });
   });
 
-  FakeServer.route("get", "/user/:id/badges", function(id, params) {
-    var page = parseInt(params.page, 10);
-    var params = parseInt(params.perPage, 10);
-    var startAt = (12 * page) - 12;
-    var endAt = startAt + 12;
-    return FakeAPI.users.findWhere({ id: id }).badges.slice(startAt, endAt);
-    // return FakeAPI.users.findWhere({ id: id }).badges;
+  FakeServer.route("get", "/user/:id/badges", function(id) {
+    return FakeAPI.users.findWhere({ id: id }).badges;
   });
 
   FakeServer.route("get", "/user/:id/badges/:badgeId", function(id, badgeId) {

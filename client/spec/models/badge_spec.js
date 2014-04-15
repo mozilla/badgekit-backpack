@@ -13,8 +13,19 @@ describe("App.Models.Badge", function() {
 
 describe("App.Collections.Badges", function() {
   var subject;
+  beforeEach(function() {
+    subject = new App.Collections.Badges;
+  });
 
-  describe("when empty", function() {
+  it("has a page", function() {
+    expect(subject.page).toEqual(1);
+  });
+
+  it("has a perPage value", function() {
+    expect(subject.perPage).toBeNumber();
+  });
+
+  describe("when there is no user id", function() {
     beforeEach(function() {
       subject = new App.Collections.Badges();
     });
@@ -24,15 +35,19 @@ describe("App.Collections.Badges", function() {
     });
   });
 
-  describe("when not empty", function() {
+  describe("when there is a userId", function() {
     var badgeAttributes;
+    var userId;
     beforeEach(function() {
       badgeAttributes = FakeAPI.users.first().badges.first();
       subject = new App.Collections.Badges([badgeAttributes]);
+      userId = 1;
+      subject.userId = userId;
     });
 
     it("has a url", function() {
-      expect(subject.url()).toEqual("/user/" + subject.first().get("earnerId") + "/badges");
+      var expectedURL = "/user/" + subject.userId + "/badges?page=" + subject.page + "&perPage=" + subject.perPage;
+      expect(subject.url()).toEqual(expectedURL);
     });
   });
 });

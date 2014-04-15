@@ -20268,7 +20268,7 @@ var c=a.definitions,g=a.Helpers;"function"==typeof define?define(function(){retu
 App = App || {};
 App.Config = {};
 
-(FakeServer = {
+FakeServer = {
   xhr: sinon.useFakeXMLHttpRequest(),
   requests: [],
   JSONHeaders: { "Content-Type": "application/json" },
@@ -20328,7 +20328,7 @@ App.Config = {};
   },
 
   hasRoute: function(verb, url) {
-    var hasRoute;
+    var hasRoute = false;
     this.routeMatchers[verb].each(function(matcher, key) {
       if (matcher.test(url.path)) {
         hasRoute = true;
@@ -20339,24 +20339,25 @@ App.Config = {};
   },
 
   responsePayload: function(verb, url) {
-    var route;
+    var routePayload;
     var pattern;
 
     this.routeMatchers[verb].each(function(matcher, key) {
       if (matcher.test(url.path)) {
-        route = FakeServer.routes[verb][key];
+        routePayload = FakeServer.routes[verb][key];
         pattern = matcher;
       }
     });
 
-    if (isFunction(route)) {
+    if (isFunction(routePayload)) {
       var args = url.path.match(pattern).rest();
       args = args.map(function(arg) {
         return /[0-9]+/.test(arg) ? parseInt(arg, 10) : arg;
       });
-      return route.apply(null, args);
+      args.push(url.params);
+      return routePayload.apply(null, args);
     } else {
-      return route;
+      return routePayload;
     }
   },
 
@@ -20382,7 +20383,9 @@ App.Config = {};
     }, {});
     return params;
   }
-}).initialize();
+};
+
+FakeServer.initialize();
 
 (function(global) {
   global.FakeAPI = {
@@ -20425,8 +20428,13 @@ App.Config = {};
     return FakeAPI.users.findWhere({ id: id });
   });
 
-  FakeServer.route("get", "/user/:id/badges", function(id) {
-    return FakeAPI.users.findWhere({ id: id }).badges;
+  FakeServer.route("get", "/user/:id/badges", function(id, params) {
+    var page = parseInt(params.page, 10);
+    var params = parseInt(params.perPage, 10);
+    var startAt = (12 * page) - 12;
+    var endAt = startAt + 12;
+    return FakeAPI.users.findWhere({ id: id }).badges.slice(startAt, endAt);
+    // return FakeAPI.users.findWhere({ id: id }).badges;
   });
 
   FakeServer.route("get", "/user/:id/badges/:badgeId", function(id, badgeId) {
@@ -20534,6 +20542,68 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
     + "\n  </p>\n  <div class=\"actions\">\n    <i class=\"fa fa-trash-o\"></i>\n    <button>Details</button>\n  </div>\n</div>\n";
   return buffer;
   });;
+this["App"] = this["App"] || {};
+this["App"]["Templates"] = this["App"]["Templates"] || {};
+this["App"]["Templates"]["paginator"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  var buffer = "", stack1, functionType="function", escapeExpression=this.escapeExpression, self=this;
+
+function program1(depth0,data) {
+  
+  
+  return "\n    <li><a class=\"previous\">&laquo;</a></li>\n  ";
+  }
+
+function program3(depth0,data) {
+  
+  
+  return "\n    <li><a class=\"spacer\">&laquo;</a></li>\n  ";
+  }
+
+function program5(depth0,data) {
+  
+  var buffer = "", stack1;
+  buffer += "\n    <li><a class=\"";
+  if (stack1 = helpers.className) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
+  else { stack1 = (depth0 && depth0.className); stack1 = typeof stack1 === functionType ? stack1.call(depth0, {hash:{},data:data}) : stack1; }
+  buffer += escapeExpression(stack1)
+    + "\" data-page-number=\"";
+  if (stack1 = helpers.number) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
+  else { stack1 = (depth0 && depth0.number); stack1 = typeof stack1 === functionType ? stack1.call(depth0, {hash:{},data:data}) : stack1; }
+  buffer += escapeExpression(stack1)
+    + "\">";
+  if (stack1 = helpers.number) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
+  else { stack1 = (depth0 && depth0.number); stack1 = typeof stack1 === functionType ? stack1.call(depth0, {hash:{},data:data}) : stack1; }
+  buffer += escapeExpression(stack1)
+    + "</a></li>\n  ";
+  return buffer;
+  }
+
+function program7(depth0,data) {
+  
+  
+  return "\n    <li><a class=\"next\">&raquo;</a></li>\n  ";
+  }
+
+function program9(depth0,data) {
+  
+  
+  return "\n    <li><a class=\"spacer\">&raquo;</a></li>\n  ";
+  }
+
+  buffer += "<ul>\n  ";
+  stack1 = helpers['if'].call(depth0, (depth0 && depth0.isNotFirstPage), {hash:{},inverse:self.program(3, program3, data),fn:self.program(1, program1, data),data:data});
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += "\n  ";
+  stack1 = helpers.each.call(depth0, (depth0 && depth0.pages), {hash:{},inverse:self.noop,fn:self.program(5, program5, data),data:data});
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += "\n  ";
+  stack1 = helpers['if'].call(depth0, (depth0 && depth0.isNotLastPage), {hash:{},inverse:self.program(9, program9, data),fn:self.program(7, program7, data),data:data});
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += "\n</ul>\n";
+  return buffer;
+  });;
 App.Models.BaseModel = Backbone.Model.extend({
   constructor: function(attributes, options) {
     options = options || {};
@@ -20572,8 +20642,13 @@ App.Models.Badge = App.Models.BaseModel.extend({
 });
 
 App.Collections.Badges = App.Collections.BaseCollection.extend({
+  initialize: function() {
+    this.page = 1;
+    this.perPage = 12;
+  },
+
   url: function() {
-    return this.isEmpty() ? undefined : "/user/" + this.first().get("earnerId") + "/badges";
+    return !this.userId ? undefined : "/user/" + this.userId + "/badges?page=" + this.page + "&perPage=" + this.perPage;
   }
 });
 
@@ -20581,6 +20656,13 @@ App.Models.User = App.Models.BaseModel.extend({
   urlRoot: "/user",
   relationships: {
     badges: App.Collections.Badges
+  },
+
+  initialize: function() {
+    if (!this.get("badges")) {
+      this.set("badges", new App.Collections.Badges);
+      this.get("badges").userId = this.id;
+    }
   }
 });
 
@@ -20657,6 +20739,74 @@ App.Views.BaseView = Backbone.View.extend({
 
 })();
 
+App.Views.Paginator = App.Views.BaseView.extend({
+  template: App.Templates.paginator,
+  currentPage: 1,
+  events: {
+    "click .page": "handlePageClick",
+    "click .previous": "handlePreviousClick",
+    "click .next": "handleNextClick"
+  },
+
+  initialize: function(options) {
+    _.bindAll(this, "createPageObject");
+    options = options || {};
+    this.totalCount = options.totalCount || 0;
+    this.render();
+  },
+
+  render: function() {
+    if (this.collection.isEmpty()) return;
+    return this.$el.html(this.template({
+      pages: this.pages(),
+      isNotFirstPage: this.currentPage !== 1,
+      isNotLastPage: this.currentPage !== this.pageCount()
+    }));
+  },
+
+  pages: function() {
+    return _.times(this.pageCount(), this.createPageObject);
+  },
+
+  createPageObject: function(i) {
+    var num = i + 1;
+    var className = this.currentPage === num ? "current" : "page";
+    return {
+      number: num,
+      className: className
+    };
+  },
+
+  pageCount: function() {
+    return Math.ceil(this.totalCount / this.collection.perPage);
+  },
+
+  handlePageClick: function(e) {
+    e.preventDefault();
+    var pageLink = $(e.target);
+    this.currentPage = pageLink.data().pageNumber;
+    this.collection.page = this.currentPage;
+    this.collection.fetch();
+    this.render();
+  },
+
+  handlePreviousClick: function(e) {
+    e.preventDefault();
+    this.currentPage -= 1;
+    this.collection.page = this.currentPage;
+    this.collection.fetch();
+    this.render();
+  },
+
+  handleNextClick: function(e) {
+    e.preventDefault();
+    this.currentPage += 1;
+    this.collection.page = this.currentPage;
+    this.collection.fetch();
+    this.render();
+  }
+});
+
 App.Views.Badge = App.Views.BaseView.extend({
   template: App.Templates.badge,
   className: "badge",
@@ -20727,10 +20877,23 @@ App.Views.Badge = App.Views.BaseView.extend({
 
   initIndex: function(userAttributes) {
     this.cacheIndexElements();
-    App.CurrentUser = new App.Models.User(userAttributes);
-    App.CurrentUser.fetch()
-      .fail(this.renderBadgeFetchFailure)
-      .done(this.renderBadges);
+    this.user = new App.Models.User(userAttributes);
+    this.fetchBadges();
+  },
+
+  fetchBadges: function() {
+    this.user.get("badges").fetch()
+      .fail(this.handleBadgeFetchFailure)
+      .done(this.handleBadgesFetchSuccess);
+  },
+
+  handleBadgesFetchSuccess: function() {
+    this.renderBadges();
+    this.badgePaginator = new App.Views.Paginator({
+      el: "#badges-pagination",
+      collection: this.user.get("badges"),
+      totalCount: this.user.get("badgeCount")
+    });
   },
 
   cacheIndexElements: function() {
@@ -20739,14 +20902,13 @@ App.Views.Badge = App.Views.BaseView.extend({
 
   renderBadges: function() {
     this.badgesView = new App.Views.Badges({
-      collection: App.CurrentUser.get("badges"),
+      collection: this.user.get("badges"),
       el: this.myBadges
     });
     this.badgesView.render();
   },
 
-  renderBadgeFetchFailure: function(response) {
-    console.log(response);
+  handleBadgeFetchFailure: function(response) {
     this.myBadges.html("<li>There was an error fetching your badges</li>");
   }
 }).initialize();

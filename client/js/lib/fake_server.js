@@ -1,4 +1,4 @@
-(FakeServer = {
+FakeServer = {
   xhr: sinon.useFakeXMLHttpRequest(),
   requests: [],
   JSONHeaders: { "Content-Type": "application/json" },
@@ -58,7 +58,7 @@
   },
 
   hasRoute: function(verb, url) {
-    var hasRoute;
+    var hasRoute = false;
     this.routeMatchers[verb].each(function(matcher, key) {
       if (matcher.test(url.path)) {
         hasRoute = true;
@@ -69,24 +69,25 @@
   },
 
   responsePayload: function(verb, url) {
-    var route;
+    var routePayload;
     var pattern;
 
     this.routeMatchers[verb].each(function(matcher, key) {
       if (matcher.test(url.path)) {
-        route = FakeServer.routes[verb][key];
+        routePayload = FakeServer.routes[verb][key];
         pattern = matcher;
       }
     });
 
-    if (isFunction(route)) {
+    if (isFunction(routePayload)) {
       var args = url.path.match(pattern).rest();
       args = args.map(function(arg) {
         return /[0-9]+/.test(arg) ? parseInt(arg, 10) : arg;
       });
-      return route.apply(null, args);
+      args.push(url.params);
+      return routePayload.apply(null, args);
     } else {
-      return route;
+      return routePayload;
     }
   },
 
@@ -112,4 +113,6 @@
     }, {});
     return params;
   }
-}).initialize();
+};
+
+FakeServer.initialize();

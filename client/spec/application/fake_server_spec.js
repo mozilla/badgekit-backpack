@@ -186,6 +186,28 @@ describe("FakeServer", function() {
         expect(subject.responsePayload(verb, url)).toEqual(payload());
       });
 
+      describe("with query params", function() {
+        var params;
+        beforeEach(function() {
+          params = {
+            key: "value",
+            anotherKey: "anotherValue"
+          };
+          path = "/function/:id";
+          payload = jasmine.createSpy().and.returnValue("payload");
+          url = {
+            path: "/function/1",
+            params: params
+          };
+          subject.route(verb, path, payload);
+          subject.responsePayload(verb, url);
+        });
+
+        it("passes the query params as the last argument", function() {
+          expect(payload).toHaveBeenCalledWith(1, params);
+        });
+      });
+
       describe("dynamic segments", function() {
         beforeEach(function() {
           path = "/dynamic/:value/:numeric";

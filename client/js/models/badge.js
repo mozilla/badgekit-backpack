@@ -5,7 +5,12 @@ App.Models.Badge = App.Models.BaseModel.extend({
 });
 
 App.Collections.Badges = App.Collections.BaseCollection.extend({
+  initialize: function() {
+    this.page = 1;
+    this.perPage = 12;
+  },
+
   url: function() {
-    return this.isEmpty() ? undefined : "/user/" + this.first().get("earnerId") + "/badges";
+    return !this.userId ? undefined : "/user/" + this.userId + "/badges?page=" + this.page + "&perPage=" + this.perPage;
   }
 });

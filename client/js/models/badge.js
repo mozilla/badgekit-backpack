@@ -15,12 +15,10 @@ App.Collections.Badges = App.Collections.BaseCollection.extend({
     this.totalCount = 0;
   },
 
-  parse: function() {
-    var args = _.toArray(arguments);
-    var attributes = args.shift();
-    this.totalCount = attributes.shift();
-    args.unshift(attributes);
-    return Backbone.Collection.prototype.parse.apply(this, args);
+  parse: function(attributes) {
+    attributes = attributes || {};
+    this.totalCount = attributes.totalCount || 0;
+    return attributes.badges;
   },
 
   url: function() {

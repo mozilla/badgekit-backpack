@@ -22781,10 +22781,10 @@ FakeServer.initialize();
     });
     var user = FakeAPI.users.findWhere({ id: id });
     var badges = _.size(searchParams) ? user.badges.where(searchParams) : user.badges;
-    var totalCount = badges.length;
-    var paginatedBadges = badges.slice(startAt, endAt);
-    paginatedBadges.unshift(totalCount);
-    return paginatedBadges;
+    return {
+      totalCount: badges.length,
+      badges: badges.slice(startAt, endAt)
+    };
   });
 
   FakeServer.route("get", "/user/:id/badges/:badgeId", function(id, badgeId) {
@@ -23027,12 +23027,10 @@ App.Collections.Badges = App.Collections.BaseCollection.extend({
     this.totalCount = 0;
   },
 
-  parse: function() {
-    var args = _.toArray(arguments);
-    var attributes = args.shift();
-    this.totalCount = attributes.shift();
-    args.unshift(attributes);
-    return Backbone.Collection.prototype.parse.apply(this, args);
+  parse: function(attributes) {
+    attributes = attributes || {};
+    this.totalCount = attributes.totalCount || 0;
+    return attributes.badges;
   },
 
   url: function() {
@@ -23179,7 +23177,13 @@ App.Views.Paginator = App.Views.BaseView.extend({
     this.onBeforeFetch = options.onBeforeFetch || $.noop;
     this.onAfterFetch = options.onAfterFetch || $.noop;
     this.collection.on("sync", this.render, this);
+    App.Dispatcher.on("badgesFiltered", this.resetPagination, this);
     this.render();
+  },
+
+  resetPagination: function() {
+    this.currentPage = 1;
+    this.collection.page = this.currentPage;
   },
 
   render: function() {
@@ -23338,6 +23342,7 @@ App.Views.BadgeFilter = App.Views.BaseView.extend({
 
   handleSearchButtonClick: function(e) {
     e.preventDefault();
+    App.Dispatcher.trigger("badgesFiltered");
     this.toggleLoading();
     this.collection.filters = this.getFilters();
     this.onBeforeFetch();

@@ -50,10 +50,10 @@
     });
     var user = FakeAPI.users.findWhere({ id: id });
     var badges = _.size(searchParams) ? user.badges.where(searchParams) : user.badges;
-    var totalCount = badges.length;
-    var paginatedBadges = badges.slice(startAt, endAt);
-    paginatedBadges.unshift(totalCount);
-    return paginatedBadges;
+    return {
+      totalCount: badges.length,
+      badges: badges.slice(startAt, endAt)
+    };
   });
 
   FakeServer.route("get", "/user/:id/badges/:badgeId", function(id, badgeId) {

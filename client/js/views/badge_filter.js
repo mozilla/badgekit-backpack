@@ -34,6 +34,7 @@ App.Views.BadgeFilter = App.Views.BaseView.extend({
 
   handleSearchButtonClick: function(e) {
     e.preventDefault();
+    App.Dispatcher.trigger("badgesFiltered");
     this.toggleLoading();
     this.collection.filters = this.getFilters();
     this.onBeforeFetch();

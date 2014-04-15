@@ -13,7 +13,13 @@ App.Views.Paginator = App.Views.BaseView.extend({
     this.onBeforeFetch = options.onBeforeFetch || $.noop;
     this.onAfterFetch = options.onAfterFetch || $.noop;
     this.collection.on("sync", this.render, this);
+    App.Dispatcher.on("badgesFiltered", this.resetPagination, this);
     this.render();
+  },
+
+  resetPagination: function() {
+    this.currentPage = 1;
+    this.collection.page = this.currentPage;
   },
 
   render: function() {

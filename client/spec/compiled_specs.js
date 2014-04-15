@@ -732,7 +732,7 @@ describe("App.Views.BadgeFilter", function() {
     it("returns the filter data as json", function() {
       expect(filters).toEqual({
         status: App.Models.Badge.STATUSES.last(),
-        type: App.Models.Badge.TYPES.last()
+        badgeType: App.Models.Badge.TYPES.last()
       });
     });
   });
@@ -1208,10 +1208,10 @@ describe("App.Views.Paginator", function() {
     affix("#container");
     badgesAttributes = _.clone(FakeAPI.users.first().badges);
     badges = new App.Collections.Badges(badgesAttributes);
+    badges.totalCount = 50;
     subject = new App.Views.Paginator({
       el: "#container",
-      collection: badges,
-      totalCount: 50
+      collection: badges
     });
   });
 
@@ -1222,18 +1222,6 @@ describe("App.Views.Paginator", function() {
 
   it("has a current page", function() {
     expect(subject.currentPage).toEqual(1);
-  });
-
-  it("sets the total count", function() {
-    expect(subject.totalCount).toEqual(50);
-  });
-
-  it("sets the total count to 0 if not passed", function() {
-    subject = new App.Views.Paginator({
-      el: "#container",
-      collection: badges
-    });
-    expect(subject.totalCount).toEqual(0);
   });
 
   describe("initialize", function() {
@@ -1254,7 +1242,8 @@ describe("App.Views.Paginator", function() {
 
   describe("pageCount", function() {
     it("returns the length of the collection divided by the perPage value rounded up", function() {
-      var pageCount = Math.ceil(badges.length / badges.perPage);
+      badges.totalCount = 50;
+      var pageCount = Math.ceil(badges.totalCount / badges.perPage);
       expect(subject.pageCount()).toEqual(pageCount);
     });
   });

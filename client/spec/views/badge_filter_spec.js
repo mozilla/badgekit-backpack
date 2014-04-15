@@ -135,7 +135,7 @@ describe("App.Views.BadgeFilter", function() {
     it("returns the filter data as json", function() {
       expect(filters).toEqual({
         status: App.Models.Badge.STATUSES.last(),
-        type: App.Models.Badge.TYPES.last()
+        badgeType: App.Models.Badge.TYPES.last()
       });
     });
   });

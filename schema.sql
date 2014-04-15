@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS `evidence`;
 DROP TABLE IF EXISTS `earnerBadges`;
 DROP TABLE IF EXISTS `badgeClasses`;
 DROP TABLE IF EXISTS `issuerOrgs`;
@@ -107,6 +108,22 @@ CREATE TABLE `earnerBadges` (
     ON UPDATE CASCADE,
   FOREIGN KEY (`badgeClassId`)
     REFERENCES `badgeClasses`(`id`)
+    ON UPDATE CASCADE
+) CHARACTER SET utf8
+  ENGINE=InnoDB;
+
+CREATE TABLE `evidence` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `earnerId` VARCHAR(255) NOT NULL,
+  `createdOn` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `slug` VARCHAR(128) NOT NULL,
+  `content` MEDIUMTEXT NOT NULL,
+  `contentType` VARCHAR(255) NOT NULL DEFAULT 'text/plain',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY (`slug`),
+  FOREIGN KEY (`earnerId`)
+    REFERENCES `earners`(`id`)
+    ON DELETE CASCADE
     ON UPDATE CASCADE
 ) CHARACTER SET utf8
   ENGINE=InnoDB;

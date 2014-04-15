@@ -1,5 +1,7 @@
 const restify = require('restify')
 const Promise = require('bluebird')
+const sha1 = require('../lib/hash').sha1
+const Evidence = require('../models/evidence')
 const Earners = require('../models/earners')
 const EarnerData = require('../models/earner-data')
 
@@ -107,4 +109,86 @@ module.exports = function earnerRoutes(server) {
       .catch(NotFoundError, next)
       .catch(res.logInternalError('DELETE /users/:userId – Error deleting user'))
   }
+
+  // Evidence
+  // --------
+
+  server.post('/users/:userId/evidence', createEvidence)
+  function createEvidence(req, res, next) {
+    const earnerId = req.params.userId
+    const form = req.body
+    const slug = sha1(Date.now() + earnerId + form.content)
+    const modelData = {
+      earnerId: earnerId,
+      description: form.description,
+      slug: sha1(Date.now() + earnerId + form.content),
+      content: Buffer(form.content).toString('base64'),
+      contentType: form.contentType,
+    }
+    Earners.getOne({id: earnerId})
+      .then(function(earner) {
+        if (!earner)
+          throw new NotFoundError('Could not find earner with id `' + earnerId + '`')
+        return Evidence.put(modelData)
+      })
+
+      .then(function(result) {
+        const publicUrl = '/evidence/' + slug
+        const privateUrl =
+          '/users/' + earnerId + '/evidence/' + result.insertId
+        res.header('Location', req.resolvePath(privateUrl))
+        return res.send(201, {
+          status: 'created',
+          privateUrl: req.resolvePath(privateUrl),
+          publicUrl: req.resolvePath(publicUrl),
+        })
+      })
+
+      .catch(NotFoundError, next)
+      .catch(res.logInternalError('POST /users/:userId/evidence – Error creating new evidence for user'))
+  }
+
+  server.get('/users/:userId/evidence/:evidenceId', findEvidence)
+  function findEvidence(req, res, next) {
+    const earnerId = req.params.userId
+    const evidenceId = req.params.evidenceId
+    Evidence.getOne({earnerId: earnerId, id: evidenceId})
+      .then(function(evidence) {
+        if (!evidence)
+          throw new NotFoundError('Could not find evidence for user `' + earnerId  + '` with id `' + evidenceId + '`')
+
+        return res.send(200, {
+          slug: evidence.slug,
+          createdOn: evidence.createdOn,
+          description: evidence.description,
+          content: evidence.content,
+          contentType: evidence.contentType,
+        })
+      })
+
+      .catch(NotFoundError, next)
+      .catch(res.logInternalError('POST /users/:userId/evidence – Error creating new evidence for user'))
+  }
+
+  server.get('/evidence/:slug', findEvidenceBySlug)
+  function findEvidenceBySlug(req, res, next) {
+    const slug = req.params.slug
+    Evidence.getOne({slug: slug})
+      .then(function(evidence) {
+        if (!evidence)
+          throw new NotFoundError('Could not find evidence with the slug `' + slug + '`')
+
+        // Restify doesn't respect arbitrary content types when trying
+        // to `send()` buffers. To avoid header re-writing, we use
+        // `write` and `end` directly.
+        res.setHeader('content-type', evidence.contentType)
+        res.write(Buffer(evidence.content, 'base64'))
+        res.end()
+      })
+
+      .catch(NotFoundError, next)
+      .catch(res.logInternalError('POST /users/:userId/evidence – Error creating new evidence for user'))
+
+  }
+
 }

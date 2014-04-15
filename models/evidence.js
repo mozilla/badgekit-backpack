@@ -5,6 +5,7 @@ const Evidence = db.table('evidence', {
     'earnerId',
     'createdOn',
     'slug',
+    'description',
     'content',
     'contentType',
   ],

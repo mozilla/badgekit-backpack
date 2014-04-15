@@ -117,6 +117,7 @@ CREATE TABLE `evidence` (
   `earnerId` VARCHAR(255) NOT NULL,
   `createdOn` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `slug` VARCHAR(128) NOT NULL,
+  `description` VARCHAR(255),
   `content` MEDIUMTEXT NOT NULL,
   `contentType` VARCHAR(255) NOT NULL DEFAULT 'text/plain',
   PRIMARY KEY (`id`),

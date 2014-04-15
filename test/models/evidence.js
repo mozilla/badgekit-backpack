@@ -18,6 +18,7 @@ prepare().then(function (db) {
       .then(function(evidence) {
         t.same(evidence.id, data.id, 'has right id')
         t.ok(evidence.createdOn, 'has createdOn date')
+        t.same(evidence.contentType, 'text/plain', 'has text/plain contentType date')
         return Evidence.del({id: 100})
       })
 
@@ -31,4 +32,9 @@ prepare().then(function (db) {
         t.end()
       })
   })
+
+  test('--close--', function (t) {
+    db.close(), t.end()
+  })
+
 })

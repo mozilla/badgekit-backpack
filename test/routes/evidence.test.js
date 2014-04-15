@@ -43,5 +43,18 @@ prepare({db: true}).then(function(api) {
       })
   })
 
+  test('DELETE /users/:userId/evidence/:evidenceId', function (t) {
+    api.del('/users/test-user/evidence/1')
+      .then(function(res) {
+        t.same(res.statusCode, 200)
+        return api.del('/users/test-user/evidence/1')
+      })
+
+      .then(function(res) {
+        t.same(res.statusCode, 404)
+        t.end()
+      })
+  })
+
   test('--close--', api.finish.bind(api))
 })

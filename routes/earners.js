@@ -170,6 +170,21 @@ module.exports = function earnerRoutes(server) {
       .catch(res.logInternalError('POST /users/:userId/evidence – Error creating new evidence for user'))
   }
 
+  server.del('/users/:userId/evidence/:evidenceId', deleteEvidence)
+  function deleteEvidence(req, res, next) {
+    const earnerId = req.params.userId
+    const evidenceId = req.params.evidenceId
+    Evidence.del({earnerId: earnerId, id: evidenceId}, {limit: 1})
+      .then(function(result) {
+        if (!result.affectedRows)
+          throw new NotFoundError('Could not find evidence for user `' + earnerId  + '` with id `' + evidenceId + '`')
+        return res.send(200, {status: 'deleted'})
+      })
+      .catch(NotFoundError, next)
+      .catch(res.logInternalError('POST /users/:userId/evidence – Error creating new evidence for user'))
+  }
+
+
   server.get('/evidence/:slug', findEvidenceBySlug)
   function findEvidenceBySlug(req, res, next) {
     const slug = req.params.slug

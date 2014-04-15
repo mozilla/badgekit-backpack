@@ -1,4 +1,5 @@
 const Earners = require('../../models/earners')
+const Evidence = require('../../models/evidence')
 const EarnerData = require('../../models/earner-data')
 const JSONModel = require('../../models/json')
 const IssuerOrgs = require('../../models/issuer-orgs')
@@ -25,6 +26,27 @@ module.exports = [
     { earnerId: 'delete-me',
       key: 'fool me once',
       value: 'now you don\'t' }
+  ]],
+
+  [Evidence, [
+    { id: 100,
+      earnerId: 'test-user',
+      slug: 'delete-test',
+      content: Buffer('this will be deleted').toString('base64'),
+      contentType: 'text/plain',
+      description: 'dleltleeedleld'},
+    { id: 101,
+      earnerId: 'test-user',
+      slug: 'hi-test',
+      content: Buffer('hi').toString('base64'),
+      contentType: 'text/plain',
+      description: 'A simple greeting'},
+    { id: 102,
+      earnerId: 'test-user',
+      slug: 'sup-test',
+      content: Buffer('sup').toString('base64'),
+      contentType: 'text/plain',
+      description: 'Another simple greeting'},
   ]],
 
   [JSONModel, [

@@ -148,6 +148,22 @@ module.exports = function earnerRoutes(server) {
       .catch(res.logInternalError('POST /users/:userId/evidence – Error creating new evidence for user'))
   }
 
+  server.get('/users/:userId/evidence', findAllEvidence)
+  function findAllEvidence(req, res, next) {
+    const earnerId = req.params.userId
+    Earners.getOne({id: earnerId})
+      .then(function(earner) {
+        if (!earner)
+          throw new NotFoundError('Could not find earner with id `' + earnerId + '`')
+        return Evidence.get({earnerId: earnerId}, {exclude: ['content']})
+      })
+
+      .then(function(evidenceList) {
+        res.send(200, evidenceList)
+      })
+  }
+
+
   server.get('/users/:userId/evidence/:evidenceId', findEvidence)
   function findEvidence(req, res, next) {
     const earnerId = req.params.userId

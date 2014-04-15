@@ -2,6 +2,16 @@ const test = require('tap').test
 const prepare = require('./')
 
 prepare({db: true}).then(function(api) {
+  test('GET /users/:userId/evidence', function (t) {
+    api.get('/users/test-user/evidence')
+      .then(function(res) {
+        t.same(res.statusCode, 200, 'good status')
+        t.ok(Array.isArray(res.body), 'body is an array')
+        t.ok(res.body.length >= 3, 'has a few results (from the fixtures)')
+        t.end()
+      })
+  })
+
   test('POST /users/:userId/evidence', function (t) {
     const form = {
       description: 'A tiny little webpage',
@@ -19,9 +29,9 @@ prepare({db: true}).then(function(api) {
       })
   })
 
-  test('GET evidence urls', function (t) {
+  test('GET /users/:userId/evidence/:evidenceId', function (t) {
     var content, contentType
-    api.get('/users/test-user/evidence/1')
+    api.get('/users/test-user/evidence/101')
       .then(function(res) {
         t.same(res.statusCode, 200, 'has 200 OK')
         t.ok(res.body.slug, 'has slug')
@@ -29,25 +39,25 @@ prepare({db: true}).then(function(api) {
         t.ok(res.body.description, 'has description')
         t.ok(res.body.content, 'has content')
         t.ok(res.body.contentType, 'has content-type')
-
-        content = res.body.content
-        contentType = res.body.contentType
-
-        return api.get('/evidence/' + res.body.slug)
-      })
-
-      .then(function(res) {
-        t.same(Buffer(res.body).toString('base64'), content, 'correct content')
-        t.same(res.headers['content-type'], contentType, 'correct content type')
         t.end()
       })
   })
 
+  test('GET /evidence/:evidenceSlug', function (t) {
+    api.get('/evidence/hi-test')
+      .then(function(res) {
+        t.same(res.statusCode, 200, 'good status')
+        t.same(res.body, 'hi', 'good body')
+        t.end()
+      })
+  })
+
+
   test('DELETE /users/:userId/evidence/:evidenceId', function (t) {
-    api.del('/users/test-user/evidence/1')
+    api.del('/users/test-user/evidence/100')
       .then(function(res) {
         t.same(res.statusCode, 200)
-        return api.del('/users/test-user/evidence/1')
+        return api.del('/users/test-user/evidence/100')
       })
 
       .then(function(res) {

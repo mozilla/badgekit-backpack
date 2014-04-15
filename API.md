@@ -62,6 +62,9 @@ Add a new piece of evidence. Note this is unassociated with a badge. `data` must
 * contentType
 * description
 
+## GET /user/<userId>/evidence
+Get a list of user's evidence. This will **not** return the `content`, to prevent the request from being huge.
+
 ## GET /user/<userId>/evidence/<evidenceId>
 Get data about a specific piece of evidence. `content` will not be base64 decoded.
 

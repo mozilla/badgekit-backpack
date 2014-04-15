@@ -122,7 +122,7 @@ module.exports = function earnerRoutes(server) {
       earnerId: earnerId,
       description: form.description,
       slug: sha1(Date.now() + earnerId + form.content),
-      content: Buffer(form.content).toString('base64'),
+      content: form.content,
       contentType: form.contentType,
     }
     Earners.getOne({id: earnerId})

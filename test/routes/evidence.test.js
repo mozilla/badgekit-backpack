@@ -5,7 +5,7 @@ prepare({db: true}).then(function(api) {
   test('POST /users/:userId/evidence', function (t) {
     const form = {
       description: 'A tiny little webpage',
-      content: '<html><a href="://example.org">oh hi</a></html>',
+      content: Buffer('<html><a href="://example.org">oh hi</a></html>').toString('base64'),
       contentType: 'text/html'
     }
     api.post('/users/test-user/evidence', form)

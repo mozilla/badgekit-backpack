@@ -43,6 +43,7 @@ gulp.task("js", function() {
     "js/views/paginator.js",
     "js/views/badge.js",
     "js/views/badges.js",
+    "js/views/badge_filter.js",
     "js/controllers/**/*.js"
   ])
   .pipe(concat("application.js").on('error', gutil.log))
@@ -55,7 +56,7 @@ gulp.task("js", function() {
 });
 
 gulp.task("templates", function(){
-  gulp.src("js/templates/**/*.hbs")
+  gulp.src("templates/**/*.hbs")
     .pipe(handlebars().on('error', gutil.log))
     .pipe(defineModule("plain"))
     .pipe(declare({
@@ -73,32 +74,8 @@ gulp.task("spec", function() {
   gulp.src("js/vendor/jquery-2.1.0.js")
     .pipe(gulp.dest("spec/lib"));
 
-  gulp.src([
-    "js/vendor/sinon-1.9.1.js",
-    "js/vendor/jquery-2.1.0.js",
-    "js/vendor/handlebars-v1.3.0.js",
-    "js/vendor/underscore.js",
-    "js/vendor/backbone.js",
-    "js/vendor/underwear.js",
-    "js/vendor/faker.js",
-    "js/vendor/uuid.js",
-    "js/lib/config.js",
-    "js/lib/fake_server.js",
-    "spec/lib/fake_api_test.js",
-    "js/lib/application.js",
-    "js/lib/templates.js",
-    "js/models/base_model.js",
-    "js/models/base_collection.js",
-    "js/models/**/*.js",
-    "js/views/base_view.js",
-    "js/views/collection_view.js",
-    "js/views/paginator.js",
-    "js/views/badge.js",
-    "js/views/badges.js",
-    "js/controllers/**/*.js"
-  ])
-  .pipe(concat("application.js").on('error', gutil.log))
-  .pipe(gulp.dest("spec/lib"));
+  gulp.src("build/application.js")
+    .pipe(gulp.dest("spec/lib"));
 });
 
 gulp.task("html", function() {

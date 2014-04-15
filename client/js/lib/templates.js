@@ -27,6 +27,16 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   });;
 this["App"] = this["App"] || {};
 this["App"]["Templates"] = this["App"]["Templates"] || {};
+this["App"]["Templates"]["badge_filter"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  
+
+
+  return "<ul>\n  <li>\n    <i class=\"fa fa-list\"></i>\n    <select name=\"category\" id=\"category-field\">\n      <option>Category</option>\n    </select>\n  </li>\n  <li>\n    <i class=\"fa fa-circle-o\"></i>\n    <select name=\"badge-status\" id=\"badge-status-field\">\n      <option>Badge Status</option>\n    </select>\n  </li>\n  <li>\n    <i class=\"fa fa-th-large\"></i>\n    <select name=\"topic\" id=\"topic-field\">\n      <option>Topic</option>\n    </select>\n  </li>\n  <li>\n    <i class=\"fa fa-calendar\"></i>\n    <select name=\"date\" id=\"date-field\">\n      <option>Date</option>\n    </select>\n  </li>\n  <li>\n    <button>Search <i class=\"fa fa-search\"></i></button>\n  </li>\n</ul>\n";
+  });;
+this["App"] = this["App"] || {};
+this["App"]["Templates"] = this["App"]["Templates"] || {};
 this["App"]["Templates"]["paginator"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
   this.compilerInfo = [4,'>= 1.0.0'];
 helpers = this.merge(helpers, Handlebars.helpers); data = data || {};

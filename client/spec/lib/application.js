@@ -20271,6 +20271,7 @@ App.Config = {};
 FakeServer = {
   xhr: sinon.useFakeXMLHttpRequest(),
   requests: [],
+  responseTime: 500,
   JSONHeaders: { "Content-Type": "application/json" },
   NotFoundHeaders: { "Content-Type": "text/plain" },
   routes: {
@@ -20312,7 +20313,7 @@ FakeServer = {
     var index = this.requests.indexOf(request);
     setTimeout(function() {
       FakeServer.respond(index);
-    }, 1);
+    }, this.responseTime);
   },
 
   respond: function(index) {
@@ -20428,8 +20429,13 @@ FakeServer.initialize();
     return FakeAPI.users.findWhere({ id: id });
   });
 
-  FakeServer.route("get", "/user/:id/badges", function(id) {
-    return FakeAPI.users.findWhere({ id: id }).badges;
+  FakeServer.route("get", "/user/:id/badges", function(id, params) {
+    var page = parseInt(params.page, 10);
+    var params = parseInt(params.perPage, 10);
+    var startAt = (12 * page) - 12;
+    var endAt = startAt + 12;
+    return FakeAPI.users.findWhere({ id: id }).badges.slice(startAt, endAt);
+    // return FakeAPI.users.findWhere({ id: id }).badges;
   });
 
   FakeServer.route("get", "/user/:id/badges/:badgeId", function(id, badgeId) {
@@ -20536,6 +20542,16 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   buffer += escapeExpression(stack1)
     + "\n  </p>\n  <div class=\"actions\">\n    <i class=\"fa fa-trash-o\"></i>\n    <button>Details</button>\n  </div>\n</div>\n";
   return buffer;
+  });;
+this["App"] = this["App"] || {};
+this["App"]["Templates"] = this["App"]["Templates"] || {};
+this["App"]["Templates"]["badge_filter"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  
+
+
+  return "<ul>\n  <li>\n    <i class=\"fa fa-list\"></i>\n    <select name=\"category\" id=\"category-field\">\n      <option>Category</option>\n    </select>\n  </li>\n  <li>\n    <i class=\"fa fa-circle-o\"></i>\n    <select name=\"badge-status\" id=\"badge-status-field\">\n      <option>Badge Status</option>\n    </select>\n  </li>\n  <li>\n    <i class=\"fa fa-th-large\"></i>\n    <select name=\"topic\" id=\"topic-field\">\n      <option>Topic</option>\n    </select>\n  </li>\n  <li>\n    <i class=\"fa fa-calendar\"></i>\n    <select name=\"date\" id=\"date-field\">\n      <option>Date</option>\n    </select>\n  </li>\n  <li>\n    <button>Search <i class=\"fa fa-search\"></i></button>\n  </li>\n</ul>\n";
   });;
 this["App"] = this["App"] || {};
 this["App"]["Templates"] = this["App"]["Templates"] || {};
@@ -20662,25 +20678,47 @@ App.Models.User = App.Models.BaseModel.extend({
 });
 
 App.Views.BaseView = Backbone.View.extend({
+  isLoading: false,
   initialize: function(options) {
     options = options || {};
-    _.bind(this.toggleLoading, this);
+    this.isLoading = this.$el.hasClass("loading");
+    _.bindAll(this, "toggleLoading", "startLoading", "stopLoading", "renderLoadingMask", "removeLoadingMask");
     this.index = options.index;
   },
 
-  toggleLoading: function(elem) {
-    var context = elem || this;
-    elem = elem || context.$el;
-    if (!elem.length) return;
-    if (context.isLoading) {
-      context.loadingMask.remove();
-      context.loadingMask = undefined;
-    } else {
-      elem.prepend('<div class="loading-mask" />');
-      context.loadingMask = this.$el.find(".loading-mask");
+  toggleLoading: function() {
+    if (!this.$el) return;
+    this.isLoading ? this.stopLoading() : this.startLoading();
+  },
+
+  startLoading: function() {
+    if (this.$el) {
+      this.$el.addClass("loading");
+      this.renderLoadingMask();
+      this.isLoading = true;
     }
-    elem.toggleClass("loading");
-    context.isLoading = context.isLoading ? false : true;
+  },
+
+  stopLoading: function() {
+    if (this.$el) {
+      this.$el.removeClass("loading");
+      this.removeLoadingMask();
+      this.isLoading = false;
+    }
+  },
+
+  renderLoadingMask: function() {
+    if (this.$el && !this.loadingMask) {
+      this.$el.prepend('<div class="loading-mask"/>');
+      this.loadingMask = this.$el.find(".loading-mask");
+    }
+  },
+
+  removeLoadingMask: function() {
+    if (this.$el && this.loadingMask) {
+      this.loadingMask.remove();
+      this.loadingMask = undefined;
+    }
   }
 });
 
@@ -20744,19 +20782,24 @@ App.Views.Paginator = App.Views.BaseView.extend({
   },
 
   initialize: function(options) {
-    _.bindAll(this, "createPageObject");
+    _.bindAll(this, "createPageObject", "toggleLoading", "handlePageFetchSuccess");
     options = options || {};
     this.totalCount = options.totalCount || 0;
+    // this.onBeforeFetch = $.noop;
+    this.onBeforeFetch = options.onBeforeFetch || $.noop;
+    // this.onAfterFetch = $.noop;
+    this.onAfterFetch = options.onAfterFetch || $.noop;
     this.render();
   },
 
   render: function() {
     if (this.collection.isEmpty()) return;
-    return this.$el.html(this.template({
+    this.$el.html(this.template({
       pages: this.pages(),
       isNotFirstPage: this.currentPage !== 1,
-      isNotLastPage: this.currentPage !== this.pageCount()
+      isNotLastPage: this.currentPage !== this.pageCount(),
     }));
+    return this.$el;
   },
 
   pages: function() {
@@ -20780,25 +20823,33 @@ App.Views.Paginator = App.Views.BaseView.extend({
     e.preventDefault();
     var pageLink = $(e.target);
     this.currentPage = pageLink.data().pageNumber;
-    this.collection.page = this.currentPage;
-    this.collection.fetch();
-    this.render();
+    this.fetchPage();
   },
 
   handlePreviousClick: function(e) {
     e.preventDefault();
     this.currentPage -= 1;
-    this.collection.page = this.currentPage;
-    this.collection.fetch();
-    this.render();
+    this.fetchPage();
   },
 
   handleNextClick: function(e) {
     e.preventDefault();
     this.currentPage += 1;
+    this.fetchPage();
+  },
+
+  fetchPage: function() {
+    this.toggleLoading();
+    this.onBeforeFetch();
     this.collection.page = this.currentPage;
-    this.collection.fetch();
+    this.collection.fetch()
+      .done(this.handlePageFetchSuccess);
+  },
+
+  handlePageFetchSuccess: function() {
     this.render();
+    this.onAfterFetch();
+    this.toggleLoading();
   }
 });
 
@@ -20862,6 +20913,18 @@ App.Views.Badge = App.Views.BaseView.extend({
   });
 })();
 
+App.Views.BadgeFilter = App.Views.BaseView.extend({
+  template: App.Templates.badge_filter,
+
+  initialize: function() {
+    this.render();
+  },
+
+  render: function() {
+    this.$el.html(this.template());
+  }
+});
+
 (App.Controllers.Dashboard = {
   initialize: function() {
     _.functions(this).each(function(func) {
@@ -20873,6 +20936,10 @@ App.Views.Badge = App.Views.BaseView.extend({
   initIndex: function(userAttributes) {
     this.cacheIndexElements();
     this.user = new App.Models.User(userAttributes);
+    this.badgeFilter = new App.Views.BadgeFilter({
+      el: "#badge-filter"
+    });
+    this.myBadges.addClass("loading");
     this.fetchBadges();
   },
 
@@ -20883,11 +20950,14 @@ App.Views.Badge = App.Views.BaseView.extend({
   },
 
   handleBadgesFetchSuccess: function() {
+    this.myBadges.removeClass("loading");
     this.renderBadges();
     this.badgePaginator = new App.Views.Paginator({
       el: "#badges-pagination",
       collection: this.user.get("badges"),
-      totalCount: this.user.get("badgeCount")
+      totalCount: this.user.get("badgeCount"),
+      onBeforeFetch: this.badgesView.toggleLoading,
+      onAfterFetch: this.badgesView.toggleLoading
     });
   },
 

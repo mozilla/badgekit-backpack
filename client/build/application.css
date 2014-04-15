@@ -1684,20 +1684,20 @@ dl {
 .fa-plus-square-o:before {
   content: "\f196"; }
 
-#header-navigation ul, .badge-filters ul, .pagination ul {
+#header-navigation ul, #badge-filter ul, .pagination ul {
   *zoom: 1; }
-  #header-navigation ul:before, .badge-filters ul:before, .pagination ul:before, #header-navigation ul:after, .badge-filters ul:after, .pagination ul:after {
+  #header-navigation ul:before, #badge-filter ul:before, .pagination ul:before, #header-navigation ul:after, #badge-filter ul:after, .pagination ul:after {
     content: " ";
     display: table; }
-  #header-navigation ul:after, .badge-filters ul:after, .pagination ul:after {
+  #header-navigation ul:after, #badge-filter ul:after, .pagination ul:after {
     clear: both; }
-  #header-navigation ul li, .badge-filters ul li, .pagination ul li {
+  #header-navigation ul li, #badge-filter ul li, .pagination ul li {
     display: inline-block; }
-    #header-navigation ul li a, .badge-filters ul li a, .pagination ul li a {
+    #header-navigation ul li a, #badge-filter ul li a, .pagination ul li a {
       display: inline-block; }
 
 
-.badge-filters ul li select, .badge-filters ul li button i {
+#badge-filter ul li select, #badge-filter ul li button i {
   margin: 0;
   padding: 0; }
 
@@ -1789,15 +1789,15 @@ dl {
     .content-header p:last-child {
       margin-right: 0; }
 
-.badge-filters {
+#badge-filter {
   *zoom: 1;
   display: block; }
-  .badge-filters:before, .badge-filters:after {
+  #badge-filter:before, #badge-filter:after {
     content: " ";
     display: table; }
-  .badge-filters:after {
+  #badge-filter:after {
     clear: both; }
-  .badge-filters ul {
+  #badge-filter ul {
     *zoom: 1;
     float: left;
     display: block;
@@ -1807,45 +1807,51 @@ dl {
     margin-right: 0;
     border: solid 1px #808080;
     padding: 0.5em; }
-    .badge-filters ul:before, .badge-filters ul:after {
+    #badge-filter ul:before, #badge-filter ul:after {
       content: " ";
       display: table; }
-    .badge-filters ul:after {
+    #badge-filter ul:after {
       clear: both; }
-    .badge-filters ul:last-child {
+    #badge-filter ul:last-child {
       margin-right: 0; }
-    .badge-filters ul li {
+    #badge-filter ul li {
       float: left;
       display: block;
       margin-right: 2.84259%;
       width: 17.72593%;
       padding: 0.5em 0 0 0; }
-      .badge-filters ul li:last-child {
+      #badge-filter ul li:last-child {
         margin-right: 0; }
-      .badge-filters ul li select {
+      #badge-filter ul li select {
         float: left;
         width: 82%; }
-      .badge-filters ul li i {
+      #badge-filter ul li i {
         display: inline-block;
         padding: 3px 0.5em 0 0;
         vertical-align: middle;
         float: left; }
-      .badge-filters ul li:last-child {
+      #badge-filter ul li:last-child {
         margin-right: 0;
         padding: 0; }
-      .badge-filters ul li button i {
+      #badge-filter ul li button i {
         float: none;
         display: inline-block; }
 
 .badges {
   *zoom: 1;
   display: block;
-  margin: 2em 0; }
+  margin: 0;
+  min-height: 50px;
+  position: relative; }
   .badges:before, .badges:after {
     content: " ";
     display: table; }
   .badges:after {
     clear: both; }
+  .badges.loading {
+    background-image: url("images/loading.gif");
+    background-repeat: no-repeat;
+    background-position: center center; }
   .badges .badge {
     float: left;
     display: block;
@@ -1915,10 +1921,20 @@ dl {
     .badges .badge button {
       float: right; }
 
+.loading-mask {
+  position: absolute;
+  background-color: rgba(255, 255, 255, 0.75);
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 100; }
+
 .pagination {
   *zoom: 1;
   display: block;
-  padding: 0 0 1em 0; }
+  padding: 0 0 1em 0;
+  position: relative; }
   .pagination:before, .pagination:after {
     content: " ";
     display: table; }

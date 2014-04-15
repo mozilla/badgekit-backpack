@@ -8,19 +8,24 @@ App.Views.Paginator = App.Views.BaseView.extend({
   },
 
   initialize: function(options) {
-    _.bindAll(this, "createPageObject");
+    _.bindAll(this, "createPageObject", "toggleLoading", "handlePageFetchSuccess");
     options = options || {};
     this.totalCount = options.totalCount || 0;
+    // this.onBeforeFetch = $.noop;
+    this.onBeforeFetch = options.onBeforeFetch || $.noop;
+    // this.onAfterFetch = $.noop;
+    this.onAfterFetch = options.onAfterFetch || $.noop;
     this.render();
   },
 
   render: function() {
     if (this.collection.isEmpty()) return;
-    return this.$el.html(this.template({
+    this.$el.html(this.template({
       pages: this.pages(),
       isNotFirstPage: this.currentPage !== 1,
-      isNotLastPage: this.currentPage !== this.pageCount()
+      isNotLastPage: this.currentPage !== this.pageCount(),
     }));
+    return this.$el;
   },
 
   pages: function() {
@@ -44,24 +49,32 @@ App.Views.Paginator = App.Views.BaseView.extend({
     e.preventDefault();
     var pageLink = $(e.target);
     this.currentPage = pageLink.data().pageNumber;
-    this.collection.page = this.currentPage;
-    this.collection.fetch();
-    this.render();
+    this.fetchPage();
   },
 
   handlePreviousClick: function(e) {
     e.preventDefault();
     this.currentPage -= 1;
-    this.collection.page = this.currentPage;
-    this.collection.fetch();
-    this.render();
+    this.fetchPage();
   },
 
   handleNextClick: function(e) {
     e.preventDefault();
     this.currentPage += 1;
+    this.fetchPage();
+  },
+
+  fetchPage: function() {
+    this.toggleLoading();
+    this.onBeforeFetch();
     this.collection.page = this.currentPage;
-    this.collection.fetch();
+    this.collection.fetch()
+      .done(this.handlePageFetchSuccess);
+  },
+
+  handlePageFetchSuccess: function() {
     this.render();
+    this.onAfterFetch();
+    this.toggleLoading();
   }
 });

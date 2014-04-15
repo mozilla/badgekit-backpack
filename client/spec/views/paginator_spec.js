@@ -1,3 +1,5 @@
+FakeServer.responseTime = 1;
+
 describe("App.Views.Paginator", function() {
   var subject;
   var badgesAttributes;
@@ -42,7 +44,7 @@ describe("App.Views.Paginator", function() {
     });
 
     it("binds externally called methods", function() {
-      expect(_.bindAll).toHaveBeenCalledWith(subject, "createPageObject");
+      expect(_.bindAll).toHaveBeenCalledWith(subject, "createPageObject", "toggleLoading", "handlePageFetchSuccess");
     });
 
     it("renders the view", function() {
@@ -139,12 +141,37 @@ describe("App.Views.Paginator", function() {
     });
   });
 
+  describe("fetchPage", function() {
+    beforeEach(function() {
+      subject.currentPage = 5;
+      spyOn(subject, "toggleLoading");
+      spyOn(subject.collection, "fetch").and.returnValue(promiseStub);
+      subject.fetchPage();
+    });
+
+    it("toggles loading", function() {
+      expect(subject.toggleLoading).toHaveBeenCalled();
+    });
+
+    it("sets the page on the collection", function() {
+      expect(subject.collection.page).toEqual(5);
+    });
+
+    it("fetches the collection", function() {
+      expect(subject.collection.fetch).toHaveBeenCalled();
+    });
+
+    it("calls the handlePageFetchSuccess method", function() {
+      expect(promiseStub.done).toHaveBeenCalledWith(subject.handlePageFetchSuccess);
+    });
+  });
+
   describe("handlePageClick", function() {
     var pageLink;
     beforeEach(function() {
       subject.render();
       spyOn(subject, "render");
-      spyOn(subject.collection, "fetch");
+      spyOn(subject, "fetchPage");
       pageLink = subject.$el.find("a").eq(2);
       eventStub.mixin({ target: pageLink[0] });
       subject.handlePageClick(eventStub);
@@ -154,16 +181,8 @@ describe("App.Views.Paginator", function() {
       expect(subject.currentPage).toEqual(pageLink.data().pageNumber);
     });
 
-    it("renders the view", function() {
-      expect(subject.render).toHaveBeenCalled();
-    });
-
-    it("sets the page on the collection", function() {
-      expect(subject.collection.page).toEqual(pageLink.data().pageNumber);
-    });
-
-    it("fetches the collection", function() {
-      expect(subject.collection.fetch).toHaveBeenCalled();
+    it("fetches the page", function() {
+      expect(subject.fetchPage).toHaveBeenCalled();
     });
   });
 
@@ -174,7 +193,7 @@ describe("App.Views.Paginator", function() {
       subject.collection.page = 3;
       subject.render();
       spyOn(subject, "render");
-      spyOn(subject.collection, "fetch");
+      spyOn(subject, "fetchPage");
       pageLink = subject.$el.find(".previous");
       eventStub.mixin({ target: pageLink[0] });
       subject.handlePreviousClick(eventStub);
@@ -184,27 +203,18 @@ describe("App.Views.Paginator", function() {
       expect(subject.currentPage).toEqual(2);
     });
 
-    it("renders the view", function() {
-      expect(subject.render).toHaveBeenCalled();
-    });
-
-    it("sets the page on the collection", function() {
-      expect(subject.collection.page).toEqual(2);
-    });
-
-    it("fetches the collection", function() {
-      expect(subject.collection.fetch).toHaveBeenCalled();
+    it("fetches the page", function() {
+      expect(subject.fetchPage).toHaveBeenCalled();
     });
   });
 
   describe("handleNextClick", function() {
     var pageLink;
     beforeEach(function() {
-      spyOn(subject.collection, "fetch");
+      spyOn(subject, "fetchPage");
       subject.currentPage = 2;
       subject.collection.page = 2;
       subject.render();
-      spyOn(subject, "render");
       pageLink = subject.$el.find(".next");
       eventStub.mixin({ target: pageLink[0] });
       subject.handleNextClick(eventStub);
@@ -214,22 +224,14 @@ describe("App.Views.Paginator", function() {
       expect(subject.currentPage).toEqual(3);
     });
 
-    it("renders the view", function() {
-      expect(subject.render).toHaveBeenCalled();
-    });
-
-    it("sets the page on the collection", function() {
-      expect(subject.collection.page).toEqual(3);
-    });
-
-    it("fetches the collection", function() {
-      expect(subject.collection.fetch).toHaveBeenCalled();
+    it("fetches the page", function() {
+      expect(subject.fetchPage).toHaveBeenCalled();
     });
   });
 
   describe("events", function() {
     beforeEach(function() {
-      spyOn(subject.collection, "fetch");
+      spyOn(subject.collection, "fetch").and.returnValue(promiseStub);
     });
 
     it("handles clicking the page links", function() {

@@ -1,11 +1,15 @@
+FakeServer.responseTime = 1;
+
 describe("App.Controllers.Dashboard", function() {
   var subject;
   var userAttributes;
   var $myBadges;
-  var $badgesPaginationl
+  var $badgesPagination;
+  var $badgeFilter;
   beforeEach(function() {
     userAttributes = _.clone(FakeAPI.users.first());
     $myBadges = affix("#my-badges");
+    $badgeFilter = affix("#badge-filter");
     $badgesPagination = affix("#badges-pagination");
     subject = App.Controllers.Dashboard;
   });
@@ -26,9 +30,14 @@ describe("App.Controllers.Dashboard", function() {
   describe("index", function() {
     describe("initIndex", function() {
       beforeEach(function() {
-        spyOn(subject, "cacheIndexElements");
+        spyOn(subject, "cacheIndexElements").and.callThrough();
         spyOn(subject, "fetchBadges");
         subject.initIndex({ id: 1 });
+      });
+
+      it("creates a BadgeFilter view", function() {
+        expect(subject.badgeFilter).toBeTypeof(App.Views.BadgeFilter);
+        expect(subject.badgeFilter.$el).toBeJqueryWrapped("#badge-filter");
       });
 
       it("caches the index elements", function() {
@@ -42,6 +51,10 @@ describe("App.Controllers.Dashboard", function() {
 
       it("fetches the user", function() {
         expect(subject.fetchBadges).toHaveBeenCalled();
+      });
+
+      it("toggles loading on the badges element", function() {
+        expect(subject.myBadges).toHaveClass("loading");
       });
     });
 
@@ -78,6 +91,7 @@ describe("App.Controllers.Dashboard", function() {
     describe("handleBadgesFetchSuccess", function() {
       beforeEach(function() {
         spyOn(subject, "renderBadges");
+        subject.badgesView = new App.Views.Badges;
         subject.handleBadgesFetchSuccess();
       });
 
@@ -89,6 +103,10 @@ describe("App.Controllers.Dashboard", function() {
         expect(subject.badgePaginator).toBeTypeof(App.Views.Paginator);
         expect(subject.badgePaginator.$el).toBeJqueryWrapped("#badges-pagination");
         expect(subject.badgePaginator.collection).toEqual(subject.user.get("badges"));
+      });
+
+      it("toggles the loading on myBadges", function() {
+        expect(subject.myBadges).not.toHaveClass("loading");
       });
     });
 

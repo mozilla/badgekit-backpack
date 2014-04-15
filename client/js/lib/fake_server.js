@@ -1,6 +1,7 @@
 FakeServer = {
   xhr: sinon.useFakeXMLHttpRequest(),
   requests: [],
+  responseTime: 500,
   JSONHeaders: { "Content-Type": "application/json" },
   NotFoundHeaders: { "Content-Type": "text/plain" },
   routes: {
@@ -42,7 +43,7 @@ FakeServer = {
     var index = this.requests.indexOf(request);
     setTimeout(function() {
       FakeServer.respond(index);
-    }, 1);
+    }, this.responseTime);
   },
 
   respond: function(index) {

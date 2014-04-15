@@ -1,22 +1,44 @@
 App.Views.BaseView = Backbone.View.extend({
+  isLoading: false,
   initialize: function(options) {
     options = options || {};
-    _.bind(this.toggleLoading, this);
+    this.isLoading = this.$el.hasClass("loading");
+    _.bindAll(this, "toggleLoading", "startLoading", "stopLoading", "renderLoadingMask", "removeLoadingMask");
     this.index = options.index;
   },
 
-  toggleLoading: function(elem) {
-    var context = elem || this;
-    elem = elem || context.$el;
-    if (!elem.length) return;
-    if (context.isLoading) {
-      context.loadingMask.remove();
-      context.loadingMask = undefined;
-    } else {
-      elem.prepend('<div class="loading-mask" />');
-      context.loadingMask = this.$el.find(".loading-mask");
+  toggleLoading: function() {
+    if (!this.$el) return;
+    this.isLoading ? this.stopLoading() : this.startLoading();
+  },
+
+  startLoading: function() {
+    if (this.$el) {
+      this.$el.addClass("loading");
+      this.renderLoadingMask();
+      this.isLoading = true;
     }
-    elem.toggleClass("loading");
-    context.isLoading = context.isLoading ? false : true;
+  },
+
+  stopLoading: function() {
+    if (this.$el) {
+      this.$el.removeClass("loading");
+      this.removeLoadingMask();
+      this.isLoading = false;
+    }
+  },
+
+  renderLoadingMask: function() {
+    if (this.$el && !this.loadingMask) {
+      this.$el.prepend('<div class="loading-mask"/>');
+      this.loadingMask = this.$el.find(".loading-mask");
+    }
+  },
+
+  removeLoadingMask: function() {
+    if (this.$el && this.loadingMask) {
+      this.loadingMask.remove();
+      this.loadingMask = undefined;
+    }
   }
 });

@@ -139,7 +139,7 @@ function isDefined(suspect) {
     "inject", "intersection", "invoke", "isEmpty", "last", "lastIndexOf",
     "map", "max", "min", "pluck", "reduce", "reduceRight", "reject",
     "rest", "select", "shuffle", "size", "some", "sortBy", "sortedIndex",
-    "tail", "take", "toArray", "union", "uniq", "without", "zip"
+    "tail", "take", "toArray", "union", "uniq", "without", "where", "zip"
   ];
 
   _.each(methods, function(method) {

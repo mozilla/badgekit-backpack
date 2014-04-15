@@ -73,6 +73,7 @@
 
 #badge-filter {
   @include row;
+  position: relative;
 
   ul {
     @include clearfix;
@@ -86,7 +87,8 @@
     li {
       @include span-columns(2 of 10);
       padding: .5em 0 0 0;
-      select {
+      select,
+      input {
         @extend %reset-spacing;
         float: left;
         width: 82%;

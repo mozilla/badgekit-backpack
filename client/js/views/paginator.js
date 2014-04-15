@@ -10,11 +10,9 @@ App.Views.Paginator = App.Views.BaseView.extend({
   initialize: function(options) {
     _.bindAll(this, "createPageObject", "toggleLoading", "handlePageFetchSuccess");
     options = options || {};
-    this.totalCount = options.totalCount || 0;
-    // this.onBeforeFetch = $.noop;
     this.onBeforeFetch = options.onBeforeFetch || $.noop;
-    // this.onAfterFetch = $.noop;
     this.onAfterFetch = options.onAfterFetch || $.noop;
+    this.collection.on("sync", this.render, this);
     this.render();
   },
 
@@ -42,7 +40,7 @@ App.Views.Paginator = App.Views.BaseView.extend({
   },
 
   pageCount: function() {
-    return Math.ceil(this.totalCount / this.collection.perPage);
+    return Math.ceil(this.collection.totalCount / this.collection.perPage);
   },
 
   handlePageClick: function(e) {
@@ -73,7 +71,6 @@ App.Views.Paginator = App.Views.BaseView.extend({
   },
 
   handlePageFetchSuccess: function() {
-    this.render();
     this.onAfterFetch();
     this.toggleLoading();
   }

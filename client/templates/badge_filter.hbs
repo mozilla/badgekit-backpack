@@ -1,29 +1,33 @@
 <ul>
   <li>
     <i class="fa fa-list"></i>
-    <select name="category" id="category-field">
-      <option>Category</option>
+    <select name="filter-badge-category" id="filter-badge-category-select">
+      <option value="">Category</option>
     </select>
   </li>
   <li>
     <i class="fa fa-circle-o"></i>
-    <select name="badge-status" id="badge-status-field">
-      <option>Badge Status</option>
+    <select name="filter-badge-status" id="filter-badge-status-select">
+      <option value="">Badge Status</option>
+      {{#each statuses}}
+        <option>{{ this }}</option>
+      {{/each}}
     </select>
   </li>
   <li>
     <i class="fa fa-th-large"></i>
-    <select name="topic" id="topic-field">
-      <option>Topic</option>
+    <select name="filter-badge-type" id="filter-badge-type-select">
+      <option value="">Type</option>
+      {{#each types}}
+        <option>{{ this }}</option>
+      {{/each}}
     </select>
   </li>
   <li>
     <i class="fa fa-calendar"></i>
-    <select name="date" id="date-field">
-      <option>Date</option>
-    </select>
+    <input name="date" id="filter-badge-date-field" />
   </li>
   <li>
-    <button>Search <i class="fa fa-search"></i></button>
+    <button class="search">Search <i class="fa fa-search"></i></button>
   </li>
 </ul>

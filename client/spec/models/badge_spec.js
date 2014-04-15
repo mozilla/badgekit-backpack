@@ -6,6 +6,14 @@ describe("App.Models.Badge", function() {
     subject = new App.Models.Badge(badgeAttributes);
   });
 
+  it("has STATUSES", function() {
+    expect(App.Models.Badge.STATUSES).toEqual(["awarded", "in queue", "reviewed"]);
+  });
+
+  it("has TYPES", function() {
+    expect(App.Models.Badge.TYPES).toEqual(['Community', 'Skill', 'Knowledge', 'Showcase']);
+  });
+
   it("has a urlRoot", function() {
     expect(subject.urlRoot()).toEqual("/user/" + subject.get("earnerId") + "/badges/" + subject.id);
   });

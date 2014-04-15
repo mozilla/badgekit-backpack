@@ -9,9 +9,7 @@
   initIndex: function(userAttributes) {
     this.cacheIndexElements();
     this.user = new App.Models.User(userAttributes);
-    this.badgeFilter = new App.Views.BadgeFilter({
-      el: "#badge-filter"
-    });
+    this.user.get("badges").totalCount = this.user.get("badgeCount");
     this.myBadges.addClass("loading");
     this.fetchBadges();
   },
@@ -28,7 +26,13 @@
     this.badgePaginator = new App.Views.Paginator({
       el: "#badges-pagination",
       collection: this.user.get("badges"),
-      totalCount: this.user.get("badgeCount"),
+      onBeforeFetch: this.badgesView.toggleLoading,
+      onAfterFetch: this.badgesView.toggleLoading
+    });
+
+    this.badgeFilter = new App.Views.BadgeFilter({
+      el: "#badge-filter",
+      collection: this.user.get("badges"),
       onBeforeFetch: this.badgesView.toggleLoading,
       onAfterFetch: this.badgesView.toggleLoading
     });

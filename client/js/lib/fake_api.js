@@ -41,11 +41,19 @@
 
   FakeServer.route("get", "/user/:id/badges", function(id, params) {
     var page = parseInt(params.page, 10);
-    var params = parseInt(params.perPage, 10);
-    var startAt = (12 * page) - 12;
-    var endAt = startAt + 12;
-    return FakeAPI.users.findWhere({ id: id }).badges.slice(startAt, endAt);
-    // return FakeAPI.users.findWhere({ id: id }).badges;
+    var perPage = parseInt(params.perPage, 10);
+    var startAt = (perPage * page) - perPage;
+    var endAt = startAt + perPage;
+    var searchParams = params.omit(["page", "perPage"]);
+    searchParams.each(function(value, key, params) {
+      params[key] = decodeURIComponent(value);
+    });
+    var user = FakeAPI.users.findWhere({ id: id });
+    var badges = _.size(searchParams) ? user.badges.where(searchParams) : user.badges;
+    var totalCount = badges.length;
+    var paginatedBadges = badges.slice(startAt, endAt);
+    paginatedBadges.unshift(totalCount);
+    return paginatedBadges;
   });
 
   FakeServer.route("get", "/user/:id/badges/:badgeId", function(id, badgeId) {

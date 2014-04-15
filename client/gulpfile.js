@@ -24,6 +24,7 @@ gulp.task("js", function() {
   gulp.src([
     "js/vendor/sinon-1.9.1.js",
     "js/vendor/jquery-2.1.0.js",
+    "js/vendor/jquery-ui-1.10.4.js",
     "js/vendor/handlebars-v1.3.0.js",
     "js/vendor/underscore.js",
     "js/vendor/backbone.js",
@@ -102,7 +103,7 @@ gulp.task("watch", function() {
     gulp.run("js");
   });
 
-  gulp.watch("js/templates/**/*.hbs", function() {
+  gulp.watch("templates/**/*.hbs", function() {
     gulp.run("templates");
   });
 

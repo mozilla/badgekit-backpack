@@ -30,10 +30,25 @@ this["App"]["Templates"] = this["App"]["Templates"] || {};
 this["App"]["Templates"]["badge_filter"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
   this.compilerInfo = [4,'>= 1.0.0'];
 helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  var buffer = "", stack1, functionType="function", escapeExpression=this.escapeExpression, self=this;
+
+function program1(depth0,data) {
   
+  var buffer = "";
+  buffer += "\n        <option>"
+    + escapeExpression((typeof depth0 === functionType ? depth0.apply(depth0) : depth0))
+    + "</option>\n      ";
+  return buffer;
+  }
 
-
-  return "<ul>\n  <li>\n    <i class=\"fa fa-list\"></i>\n    <select name=\"category\" id=\"category-field\">\n      <option>Category</option>\n    </select>\n  </li>\n  <li>\n    <i class=\"fa fa-circle-o\"></i>\n    <select name=\"badge-status\" id=\"badge-status-field\">\n      <option>Badge Status</option>\n    </select>\n  </li>\n  <li>\n    <i class=\"fa fa-th-large\"></i>\n    <select name=\"topic\" id=\"topic-field\">\n      <option>Topic</option>\n    </select>\n  </li>\n  <li>\n    <i class=\"fa fa-calendar\"></i>\n    <select name=\"date\" id=\"date-field\">\n      <option>Date</option>\n    </select>\n  </li>\n  <li>\n    <button>Search <i class=\"fa fa-search\"></i></button>\n  </li>\n</ul>\n";
+  buffer += "<ul>\n  <li>\n    <i class=\"fa fa-list\"></i>\n    <select name=\"filter-badge-category\" id=\"filter-badge-category-select\">\n      <option value=\"\">Category</option>\n    </select>\n  </li>\n  <li>\n    <i class=\"fa fa-circle-o\"></i>\n    <select name=\"filter-badge-status\" id=\"filter-badge-status-select\">\n      <option value=\"\">Badge Status</option>\n      ";
+  stack1 = helpers.each.call(depth0, (depth0 && depth0.statuses), {hash:{},inverse:self.noop,fn:self.program(1, program1, data),data:data});
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += "\n    </select>\n  </li>\n  <li>\n    <i class=\"fa fa-th-large\"></i>\n    <select name=\"filter-badge-type\" id=\"filter-badge-type-select\">\n      <option value=\"\">Type</option>\n      ";
+  stack1 = helpers.each.call(depth0, (depth0 && depth0.types), {hash:{},inverse:self.noop,fn:self.program(1, program1, data),data:data});
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += "\n    </select>\n  </li>\n  <li>\n    <i class=\"fa fa-calendar\"></i>\n    <input name=\"date\" id=\"filter-badge-date-field\" />\n  </li>\n  <li>\n    <button class=\"search\">Search <i class=\"fa fa-search\"></i></button>\n  </li>\n</ul>\n";
+  return buffer;
   });;
 this["App"] = this["App"] || {};
 this["App"]["Templates"] = this["App"]["Templates"] || {};

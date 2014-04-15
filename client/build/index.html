@@ -37,7 +37,10 @@
   <script src="fake_api.js"></script>
   <script src="application.js"></script>
   <script>
-    App.Dispatcher.trigger("dashboard:index", { id: 1, badgeCount: FakeAPI.users.first().badges.length });
+    App.Dispatcher.trigger("dashboard:index", {
+      id: 1,
+      badgeCount: FakeAPI.users.first().badges.length
+    });
   </script>
 </body>
 </html>

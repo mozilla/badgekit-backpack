@@ -35,11 +35,6 @@ describe("App.Controllers.Dashboard", function() {
         subject.initIndex({ id: 1 });
       });
 
-      it("creates a BadgeFilter view", function() {
-        expect(subject.badgeFilter).toBeTypeof(App.Views.BadgeFilter);
-        expect(subject.badgeFilter.$el).toBeJqueryWrapped("#badge-filter");
-      });
-
       it("caches the index elements", function() {
         expect(subject.cacheIndexElements).toHaveBeenCalled();
       });
@@ -103,6 +98,12 @@ describe("App.Controllers.Dashboard", function() {
         expect(subject.badgePaginator).toBeTypeof(App.Views.Paginator);
         expect(subject.badgePaginator.$el).toBeJqueryWrapped("#badges-pagination");
         expect(subject.badgePaginator.collection).toEqual(subject.user.get("badges"));
+      });
+
+      it("creates a BadgeFilter view", function() {
+        expect(subject.badgeFilter).toBeTypeof(App.Views.BadgeFilter);
+        expect(subject.badgeFilter.$el).toBeJqueryWrapped("#badge-filter");
+        expect(subject.badgeFilter.collection).toEqual(subject.user.get("badges"));
       });
 
       it("toggles the loading on myBadges", function() {

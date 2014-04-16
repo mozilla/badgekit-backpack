@@ -38,6 +38,9 @@
   handleBadgesFetchSuccess: function() {
     this.renderBadges();
     this.createPaginationView();
+    if (location.hash) {
+      App.Dispatcher.trigger("showBadge", location.hash.split("/").last().toNumber());
+    }
   },
 
   handleBadgeFetchFailure: function(response) {

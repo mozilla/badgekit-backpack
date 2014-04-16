@@ -30854,10 +30854,12 @@ App.Dispatcher = _.clone(Backbone.Events);
     },
 
     index: function() {
+      console.log("index");
       App.Dispatcher.trigger("index");
     },
 
     showBadge: function(id) {
+      console.log("showBadge");
       App.Dispatcher.trigger("showBadge", id.toNumber());
     }
   });
@@ -30916,7 +30918,11 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   if (stack1 = helpers.imageUrl) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
   else { stack1 = (depth0 && depth0.imageUrl); stack1 = typeof stack1 === functionType ? stack1.call(depth0, {hash:{},data:data}) : stack1; }
   buffer += escapeExpression(stack1)
-    + "\" />\n</div>\n";
+    + "\" />\n</div>\n<div class=\"badge-details\">\n  <h2>";
+  if (stack1 = helpers.name) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
+  else { stack1 = (depth0 && depth0.name); stack1 = typeof stack1 === functionType ? stack1.call(depth0, {hash:{},data:data}) : stack1; }
+  buffer += escapeExpression(stack1)
+    + "</h2>\n</div>\n";
   return buffer;
   });;
 this["App"] = this["App"] || {};
@@ -31462,6 +31468,9 @@ App.Views.BadgeFilter = App.Views.BaseView.extend({
   handleBadgesFetchSuccess: function() {
     this.renderBadges();
     this.createPaginationView();
+    if (location.hash) {
+      App.Dispatcher.trigger("showBadge", location.hash.split("/").last().toNumber());
+    }
   },
 
   handleBadgeFetchFailure: function(response) {

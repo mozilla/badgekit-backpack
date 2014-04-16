@@ -17,6 +17,19 @@ describe("App.Models.Badge", function() {
   it("has a urlRoot", function() {
     expect(subject.urlRoot()).toEqual("/user/" + subject.get("earnerId") + "/badges/" + subject.id);
   });
+
+  describe("parse", function() {
+    var parsedAttributes;
+    beforeEach(function() {
+      parsedAttributes = subject.parse(badgeAttributes);
+    });
+
+    it("converts dates to moment objects", function() {
+      expect(parsedAttributes.createdOn).toBeTypeof(moment().constructor);
+      expect(parsedAttributes.issuedOn).toBeTypeof(moment().constructor);
+      expect(parsedAttributes.expires).toBeTypeof(moment().constructor);
+    });
+  });
 });
 
 describe("App.Collections.Badges", function() {
@@ -40,6 +53,28 @@ describe("App.Collections.Badges", function() {
 
     it("has an empty url", function() {
       expect(subject.url()).toBeUndefined();
+    });
+  });
+
+  describe("parse", function() {
+    var totalCount;
+    var badges;
+    var parsedAttributes;
+    beforeEach(function() {
+      totalCount = 5;
+      badges = [{ id: 1 }];
+      parsedAttributes = subject.parse({
+        totalCount: totalCount,
+        badges: badges
+      });
+    });
+
+    it("sets the totalCount", function() {
+      expect(subject.totalCount).toEqual(totalCount);
+    });
+
+    it("returns the badges", function() {
+      expect(parsedAttributes).toEqual(badges);
     });
   });
 

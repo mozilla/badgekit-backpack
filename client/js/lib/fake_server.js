@@ -48,8 +48,19 @@ FakeServer = {
 
   respond: function(index) {
     var request = this.requests[index];
+    if (!request) return;
     var verb = request.method.toLowerCase();
     var url = this.parseUrl(request.url);
+    if (this.interceptedResponse) {
+      var ir = this.interceptedResponse;
+      if (isFunction(ir.payload)) {
+        request.respond(ir.status, ir.headers, JSON.stringify(ir.payload()));
+      } else {
+        request.respond(ir.status, ir.headers, JSON.stringify(ir.payload));
+      }
+      this.interceptedResponse = undefined;
+      return;
+    };
 
     if (this.hasRoute(verb, url)) {
       request.respond(200, this.JSONHeaders, JSON.stringify(this.responsePayload(verb, url)));
@@ -79,6 +90,11 @@ FakeServer = {
         pattern = matcher;
       }
     });
+
+    if (this.interceptPayload) {
+      routePayload = this.interceptPayload;
+      this.interceptPayload = undefined;
+    }
 
     if (isFunction(routePayload)) {
       var args = url.path.match(pattern).rest();
@@ -113,7 +129,15 @@ FakeServer = {
       params[pair.first()] = pair.last();
     }, {});
     return params;
-  }
+  },
+
+  interceptResponse: function(interceptPayload) {
+    this.interceptedResponse = ({
+      payload: "",
+      status: 200,
+      headers: this.JSONHeaders
+    }).mixin(interceptPayload);
+  },
 };
 
 FakeServer.initialize();

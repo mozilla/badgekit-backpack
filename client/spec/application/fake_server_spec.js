@@ -283,5 +283,68 @@ describe("FakeServer", function() {
         expect(request.respond).toHaveBeenCalledWith(404, subject.NotFoundHeaders, "Page Not Found");
       });
     });
+
+    describe("when an interceptPayload is set", function() {
+      var ir;
+      beforeEach(function() {
+        subject.requests.length = 0;
+        subject.requests.push({
+          respond: jasmine.createSpy(),
+          url: "/not-found",
+          method: "GET"
+        });
+        request = subject.requests.last();
+        ir = {
+          payload: { test: "payload" },
+          headers: "test headers",
+          status: 500
+        };
+        subject.interceptedResponse = ir;
+        subject.respond(0);
+      });
+
+      it("responds with the interceptedResponse", function() {
+        expect(request.respond).toHaveBeenCalledWith(ir.status, ir.headers, JSON.stringify(ir.payload));
+      });
+
+      it("clears the intercepted payload", function() {
+        expect(subject.interceptedResponse).toBeUndefined();
+      });
+    });
+  });
+
+  describe("interceptResponse", function() {
+    var interceptPayload;
+    beforeEach(function() {
+      interceptPayload = {
+        payload: { test: "response" },
+        status: 500,
+        headers: { "Content-Type": "intercepted" }
+      };
+      subject.interceptResponse(interceptPayload);
+    });
+
+    it("sets the interceptPayload", function() {
+      expect(subject.interceptedResponse).toEqual(interceptPayload);
+    });
+
+    describe("defaults", function() {
+      beforeEach(function() {
+        interceptPayload = {};
+        subject.interceptResponse(interceptPayload);
+      });
+
+      it("sets a status of 200 by default", function() {
+        expect(subject.interceptedResponse.status).toEqual(200);
+      });
+
+      it("sets the json headers by default", function() {
+        expect(subject.interceptedResponse.headers).toEqual(subject.JSONHeaders);
+      });
+
+      it("sets an empty payload by default", function() {
+        expect(subject.interceptedResponse.payload).toEqual("");
+      });
+    });
   });
 });

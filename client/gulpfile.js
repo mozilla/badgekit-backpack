@@ -29,6 +29,7 @@ gulp.task("js", function() {
     "js/vendor/underscore.js",
     "js/vendor/backbone.js",
     "js/vendor/underwear.js",
+    "js/vendor/moment.js",
     "js/vendor/faker.js",
     "js/vendor/uuid.js",
     "js/lib/config.js",
@@ -121,6 +122,10 @@ gulp.task("watch", function() {
 
   gulp.watch("fonts/**/*", function() {
     gulp.run("fonts");
+  });
+
+  gulp.watch("gulpfile.js", function() {
+    gulp.run("build");
   });
 });
 

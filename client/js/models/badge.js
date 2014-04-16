@@ -1,6 +1,13 @@
 App.Models.Badge = App.Models.BaseModel.extend({
   urlRoot: function() {
     return "/user/" + this.get("earnerId") + "/badges/" + this.id;
+  },
+
+  parse: function(attributes) {
+    if (attributes.createdOn) attributes.createdOn = moment(Date.parse(attributes.createdOn));
+    if (attributes.issuedOn) attributes.issuedOn = moment(Date.parse(attributes.issuedOn));
+    if (attributes.expires) attributes.expires = moment(Date.parse(attributes.expires));
+    return attributes;
   }
 },{
   STATUSES: ["awarded", "in queue", "reviewed"],

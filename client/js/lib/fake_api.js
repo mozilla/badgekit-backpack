@@ -1,4 +1,15 @@
 (function(global) {
+  function fakeDate() {
+    var year = ["2012", "2013", "2014"].sample();
+    var month = _.range(1, 13).map(function(i) { return "" + i; }).sample().replace(/^(\d{1})$/, "0$1");
+    var day = _.range(1, 32).map(function(i) { return "" + i; }).sample().replace(/^(\d{1})$/, "0$1");
+    var hour = _.range(1, 24).map(function(i) { return "" + i; }).sample().replace(/^(\d{1})$/, "0$1");
+    var minute = _.range(1, 61).map(function(i) { return "" + i; }).sample().replace(/^(\d{1})$/, "0$1");
+    var seconds = _.range(1, 61).map(function(i) { return "" + i; }).sample().replace(/^(\d{1})$/, "0$1");
+    var dateTime = [[year, month, day].join("-"), [hour, minute, seconds].join(":")].join(" ")
+    return dateTime;
+  }
+
   global.FakeAPI = {
     users: [
       {
@@ -17,7 +28,7 @@
             consumerDescription: Faker.Lorem.paragraph(),
             tags: Faker.Lorem.words(5),
             badgeType: ['Community', 'Skill', 'Knowledge', 'Showcase'].sample(),
-            createdOn: new Date(),
+            createdOn: fakeDate(),
             jsonUrl: location.origin + "/user/1/badges/" + id,
             earnerId: 1,
             isFavorite: [true, false].sample(),
@@ -27,8 +38,8 @@
             imageUrl: location.origin + "/images/default-badge.png",
             badgeJSONUrl: location.origin + "/user/1/badges/" + id,
             evidenceUrl: location.origin + "/user/1/badges/" + id,
-            issuedOn: new Date(),
-            expires: new Date()
+            issuedOn: fakeDate(),
+            expires: fakeDate()
           };
         })
       }
@@ -44,12 +55,20 @@
     var perPage = parseInt(params.perPage, 10);
     var startAt = (perPage * page) - perPage;
     var endAt = startAt + perPage;
-    var searchParams = params.omit(["page", "perPage"]);
+    var date = params.date ? decodeURIComponent(params.date) : params.date;
+    var searchParams = params.omit(["page", "perPage", "date"]);
     searchParams.each(function(value, key, params) {
       params[key] = decodeURIComponent(value);
     });
     var user = FakeAPI.users.findWhere({ id: id });
     var badges = _.size(searchParams) ? user.badges.where(searchParams) : user.badges;
+    if (date) {
+      badges = badges.map(function(badge) {
+        var issuedOn = moment(badge.issuedOn);
+        var compareDate = moment(date);
+        return (issuedOn.isSame(compareDate) || issuedOn.isAfter(compareDate)) ? badge : undefined;
+      }).compact();
+    }
     return {
       totalCount: badges.length,
       badges: badges.slice(startAt, endAt)
@@ -60,69 +79,3 @@
     return FakeAPI.users.findWhere({ id: id }).badges.findWhere({ id: badgeId });
   });
 })(this);
-
-/*
-Backpack API
-  id
-  createdOn
-  jsonUrl
-  earnerId
-  badgeClassId
-  uid
-  imageUrl
-  badgeJSONUrl
-  evidenceUrl
-  issuedOn
-  expires
-
-Badgekit
-  id
-  name
-  status
-  description
-  issuerUrl
-  earnerDescription
-  consumerDescription
-  tags
-  rubricUrl
-  timeValue
-  timeUnits
-  limit
-  multiClaimCode
-  unique
-  published
-  imageId
-  studioShape
-  studioBackground
-  studioTextType
-  studioTextContents
-  studioIcon
-  studioColor
-  created
-  lastUpdated
-  system
-  issuer
-  program
-  badgeTyp
-
-Badgekit API
-  id
-  slug
-  name
-  strapline
-  earnerDescription
-  consumerDescription
-  issuerUrl
-  rubricUrl
-  criteriaUrl
-  timeValue
-  timeUnits
-  limit
-  unique
-  created
-  archived
-  imageId
-  systemId
-  issuerId
-  program
-*/

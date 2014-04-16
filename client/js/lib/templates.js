@@ -22,6 +22,10 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   if (stack1 = helpers.description) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
   else { stack1 = (depth0 && depth0.description); stack1 = typeof stack1 === functionType ? stack1.call(depth0, {hash:{},data:data}) : stack1; }
   buffer += escapeExpression(stack1)
+    + "\n    ";
+  if (stack1 = helpers.issuedOn) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
+  else { stack1 = (depth0 && depth0.issuedOn); stack1 = typeof stack1 === functionType ? stack1.call(depth0, {hash:{},data:data}) : stack1; }
+  buffer += escapeExpression(stack1)
     + "\n  </p>\n  <div class=\"actions\">\n    <i class=\"fa fa-trash-o\"></i>\n    <button>Details</button>\n  </div>\n</div>\n";
   return buffer;
   });;

@@ -8,6 +8,14 @@ App.Models.Badge = App.Models.BaseModel.extend({
     if (attributes.issuedOn) attributes.issuedOn = moment(Date.parse(attributes.issuedOn));
     if (attributes.expires) attributes.expires = moment(Date.parse(attributes.expires));
     return attributes;
+  },
+
+  toJSON: function() {
+    var attributes = _.clone(this.attributes);
+    if (attributes.createdOn) attributes.createdOn = attributes.createdOn.format("M/D/YY");
+    if (attributes.issuedOn) attributes.issuedOn = attributes.issuedOn.format("M/D/YY");
+    if (attributes.expires) attributes.expires = attributes.expires.format("M/D/YY");
+    return attributes;
   }
 },{
   STATUSES: ["awarded", "in queue", "reviewed"],
@@ -15,6 +23,7 @@ App.Models.Badge = App.Models.BaseModel.extend({
 });
 
 App.Collections.Badges = App.Collections.BaseCollection.extend({
+  model: App.Models.Badge,
   initialize: function() {
     this.page = 1;
     this.perPage = 12;

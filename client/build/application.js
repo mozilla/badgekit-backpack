@@ -30748,6 +30748,17 @@ FakeServer = {
 FakeServer.initialize();
 
 (function(global) {
+  function fakeDate() {
+    var year = ["2012", "2013", "2014"].sample();
+    var month = _.range(1, 13).map(function(i) { return "" + i; }).sample().replace(/^(\d{1})$/, "0$1");
+    var day = _.range(1, 32).map(function(i) { return "" + i; }).sample().replace(/^(\d{1})$/, "0$1");
+    var hour = _.range(1, 24).map(function(i) { return "" + i; }).sample().replace(/^(\d{1})$/, "0$1");
+    var minute = _.range(1, 61).map(function(i) { return "" + i; }).sample().replace(/^(\d{1})$/, "0$1");
+    var seconds = _.range(1, 61).map(function(i) { return "" + i; }).sample().replace(/^(\d{1})$/, "0$1");
+    var dateTime = [[year, month, day].join("-"), [hour, minute, seconds].join(":")].join(" ")
+    return dateTime;
+  }
+
   global.FakeAPI = {
     users: [
       {
@@ -30766,7 +30777,7 @@ FakeServer.initialize();
             consumerDescription: Faker.Lorem.paragraph(),
             tags: Faker.Lorem.words(5),
             badgeType: ['Community', 'Skill', 'Knowledge', 'Showcase'].sample(),
-            createdOn: new Date(),
+            createdOn: fakeDate(),
             jsonUrl: location.origin + "/user/1/badges/" + id,
             earnerId: 1,
             isFavorite: [true, false].sample(),
@@ -30776,8 +30787,8 @@ FakeServer.initialize();
             imageUrl: location.origin + "/images/default-badge.png",
             badgeJSONUrl: location.origin + "/user/1/badges/" + id,
             evidenceUrl: location.origin + "/user/1/badges/" + id,
-            issuedOn: new Date(),
-            expires: new Date()
+            issuedOn: fakeDate(),
+            expires: fakeDate()
           };
         })
       }
@@ -30793,12 +30804,20 @@ FakeServer.initialize();
     var perPage = parseInt(params.perPage, 10);
     var startAt = (perPage * page) - perPage;
     var endAt = startAt + perPage;
-    var searchParams = params.omit(["page", "perPage"]);
+    var date = params.date ? decodeURIComponent(params.date) : params.date;
+    var searchParams = params.omit(["page", "perPage", "date"]);
     searchParams.each(function(value, key, params) {
       params[key] = decodeURIComponent(value);
     });
     var user = FakeAPI.users.findWhere({ id: id });
     var badges = _.size(searchParams) ? user.badges.where(searchParams) : user.badges;
+    if (date) {
+      badges = badges.map(function(badge) {
+        var issuedOn = moment(badge.issuedOn);
+        var compareDate = moment(date);
+        return (issuedOn.isSame(compareDate) || issuedOn.isAfter(compareDate)) ? badge : undefined;
+      }).compact();
+    }
     return {
       totalCount: badges.length,
       badges: badges.slice(startAt, endAt)
@@ -30809,72 +30828,6 @@ FakeServer.initialize();
     return FakeAPI.users.findWhere({ id: id }).badges.findWhere({ id: badgeId });
   });
 })(this);
-
-/*
-Backpack API
-  id
-  createdOn
-  jsonUrl
-  earnerId
-  badgeClassId
-  uid
-  imageUrl
-  badgeJSONUrl
-  evidenceUrl
-  issuedOn
-  expires
-
-Badgekit
-  id
-  name
-  status
-  description
-  issuerUrl
-  earnerDescription
-  consumerDescription
-  tags
-  rubricUrl
-  timeValue
-  timeUnits
-  limit
-  multiClaimCode
-  unique
-  published
-  imageId
-  studioShape
-  studioBackground
-  studioTextType
-  studioTextContents
-  studioIcon
-  studioColor
-  created
-  lastUpdated
-  system
-  issuer
-  program
-  badgeTyp
-
-Badgekit API
-  id
-  slug
-  name
-  strapline
-  earnerDescription
-  consumerDescription
-  issuerUrl
-  rubricUrl
-  criteriaUrl
-  timeValue
-  timeUnits
-  limit
-  unique
-  created
-  archived
-  imageId
-  systemId
-  issuerId
-  program
-*/
 
 var App = App || {};
 App.Models = {};
@@ -30906,6 +30859,10 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
     + "\" />\n  <p class=\"description\">\n    ";
   if (stack1 = helpers.description) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
   else { stack1 = (depth0 && depth0.description); stack1 = typeof stack1 === functionType ? stack1.call(depth0, {hash:{},data:data}) : stack1; }
+  buffer += escapeExpression(stack1)
+    + "\n    ";
+  if (stack1 = helpers.issuedOn) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
+  else { stack1 = (depth0 && depth0.issuedOn); stack1 = typeof stack1 === functionType ? stack1.call(depth0, {hash:{},data:data}) : stack1; }
   buffer += escapeExpression(stack1)
     + "\n  </p>\n  <div class=\"actions\">\n    <i class=\"fa fa-trash-o\"></i>\n    <button>Details</button>\n  </div>\n</div>\n";
   return buffer;
@@ -31038,6 +30995,14 @@ App.Models.Badge = App.Models.BaseModel.extend({
     if (attributes.issuedOn) attributes.issuedOn = moment(Date.parse(attributes.issuedOn));
     if (attributes.expires) attributes.expires = moment(Date.parse(attributes.expires));
     return attributes;
+  },
+
+  toJSON: function() {
+    var attributes = _.clone(this.attributes);
+    if (attributes.createdOn) attributes.createdOn = attributes.createdOn.format("M/D/YY");
+    if (attributes.issuedOn) attributes.issuedOn = attributes.issuedOn.format("M/D/YY");
+    if (attributes.expires) attributes.expires = attributes.expires.format("M/D/YY");
+    return attributes;
   }
 },{
   STATUSES: ["awarded", "in queue", "reviewed"],
@@ -31045,6 +31010,7 @@ App.Models.Badge = App.Models.BaseModel.extend({
 });
 
 App.Collections.Badges = App.Collections.BaseCollection.extend({
+  model: App.Models.Badge,
   initialize: function() {
     this.page = 1;
     this.perPage = 12;

@@ -30750,11 +30750,21 @@ FakeServer.initialize();
 (function(global) {
   function fakeDate() {
     var year = ["2012", "2013", "2014"].sample();
+
     var month = _.range(1, 13).map(function(i) { return "" + i; }).sample().replace(/^(\d{1})$/, "0$1");
     var day = _.range(1, 32).map(function(i) { return "" + i; }).sample().replace(/^(\d{1})$/, "0$1");
     var hour = _.range(1, 24).map(function(i) { return "" + i; }).sample().replace(/^(\d{1})$/, "0$1");
     var minute = _.range(1, 61).map(function(i) { return "" + i; }).sample().replace(/^(\d{1})$/, "0$1");
     var seconds = _.range(1, 61).map(function(i) { return "" + i; }).sample().replace(/^(\d{1})$/, "0$1");
+
+    var generatedMonth = parseInt(month, 10);
+    var generatedDay = parseInt(day, 10);
+    var today = parseInt(moment().format("D"), 10);
+    var thisMonth = parseInt(moment().format("M"), 10);
+    if (year === moment().format("YYYY") && generatedMonth >= thisMonth) {
+      if (generatedMonth > thisMonth) month = ("" + thisMonth).replace(/^(\d{1})$/, "0$1");
+      if (generatedDay > today) day = ("" + today).replace(/^(\d{1})$/, "0$1");
+    }
     var dateTime = [[year, month, day].join("-"), [hour, minute, seconds].join(":")].join(" ")
     return dateTime;
   }

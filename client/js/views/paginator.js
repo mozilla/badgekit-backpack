@@ -1,6 +1,9 @@
 App.Views.Paginator = App.Views.BaseView.extend({
   template: App.Templates.paginator,
   currentPage: 1,
+  tagName: "nav",
+  className: "pagination",
+  id: "badges-pagination",
   events: {
     "click .page": "handlePageClick",
     "click .previous": "handlePreviousClick",
@@ -14,7 +17,6 @@ App.Views.Paginator = App.Views.BaseView.extend({
     this.onAfterFetch = options.onAfterFetch || $.noop;
     this.collection.on("sync", this.render, this);
     App.Dispatcher.on("badgesFiltered", this.resetPagination, this);
-    this.render();
   },
 
   resetPagination: function() {

@@ -15,24 +15,18 @@ describe("App.Views.BadgeFilter", function() {
     expect(subject.template).toEqual(App.Templates.badge_filter);
   });
 
+  it("is a section tag", function() {
+    expect(subject.tagName).toEqual("section");
+  });
+
+  it("has a badge-filter id", function() {
+    expect(subject.id).toEqual("badge-filter");
+  });
+
   describe("initialize", function() {
     beforeEach(function() {
       spyOn(subject, "render");
-      spyOn(subject, "cacheElements");
-      spyOn(subject, "initializeDatepicker");
       subject.initialize();
-    });
-
-    it("renders the view", function() {
-      expect(subject.render).toHaveBeenCalled();
-    });
-
-    it("caches the elements", function() {
-      expect(subject.cacheElements).toHaveBeenCalled();
-    });
-
-    it("initializes the datepicker", function() {
-      expect(subject.initializeDatepicker).toHaveBeenCalled();
     });
 
     it("sets onBeforeFetch to a noop by default", function() {
@@ -69,6 +63,8 @@ describe("App.Views.BadgeFilter", function() {
 
   describe("render", function() {
     beforeEach(function() {
+      spyOn(subject, "cacheElements").and.callThrough();
+      spyOn(subject, "initializeDatepicker");
       subject.render();
     });
 
@@ -86,6 +82,14 @@ describe("App.Views.BadgeFilter", function() {
       App.Models.Badge.TYPES.each(function(type) {
         expect(subject.$el.find('[name="filter-badge-type"] option').text()).toMatch(type);
       });
+    });
+
+    it("caches the elements", function() {
+      expect(subject.cacheElements).toHaveBeenCalled();
+    });
+
+    it("initializes the datepicker", function() {
+      expect(subject.initializeDatepicker).toHaveBeenCalled();
     });
   });
 
@@ -114,6 +118,7 @@ describe("App.Views.BadgeFilter", function() {
 
   describe("initializeDatepicker", function() {
     beforeEach(function() {
+      subject.render();
       spyOn(subject.dateField, "datepicker");
       subject.initializeDatepicker();
     });
@@ -179,6 +184,7 @@ describe("App.Views.BadgeFilter", function() {
 
   describe("handleSearchSuccess", function() {
     beforeEach(function() {
+      subject.render();
       spyOn(subject, "onAfterFetch");
       spyOn(subject, "toggleLoading");
       subject.handleSearchSuccess();

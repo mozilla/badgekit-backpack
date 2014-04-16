@@ -30704,7 +30704,7 @@ FakeServer = {
     if (isFunction(routePayload)) {
       var args = url.path.match(pattern).rest();
       args = args.map(function(arg) {
-        return /[0-9]+/.test(arg) ? parseInt(arg, 10) : arg;
+        return /[0-9]+/.test(arg) ? arg.toNumber() : arg;
       });
       args.push(url.params);
       return routePayload.apply(null, args);
@@ -30757,10 +30757,10 @@ FakeServer.initialize();
     var minute = _.range(1, 61).map(function(i) { return "" + i; }).sample().replace(/^(\d{1})$/, "0$1");
     var seconds = _.range(1, 61).map(function(i) { return "" + i; }).sample().replace(/^(\d{1})$/, "0$1");
 
-    var generatedMonth = parseInt(month, 10);
-    var generatedDay = parseInt(day, 10);
-    var today = parseInt(moment().format("D"), 10);
-    var thisMonth = parseInt(moment().format("M"), 10);
+    var generatedMonth = month.toNumber();
+    var generatedDay = day.toNumber();
+    var today = moment().format("D").toNumber();
+    var thisMonth = moment().format("M").toNumber();
     if (year === moment().format("YYYY") && generatedMonth >= thisMonth) {
       if (generatedMonth > thisMonth) month = ("" + thisMonth).replace(/^(\d{1})$/, "0$1");
       if (generatedDay > today) day = ("" + today).replace(/^(\d{1})$/, "0$1");
@@ -30774,7 +30774,7 @@ FakeServer.initialize();
       {
         id: 1,
         user: Faker.Internet.email(),
-        sharingAllowed: [true, false].sample(),
+        sharingAllowed: true,
         badges: _.times(50, function(i) {
           var id = i + 1;
           return {
@@ -30810,8 +30810,8 @@ FakeServer.initialize();
   });
 
   FakeServer.route("get", "/user/:id/badges", function(id, params) {
-    var page = parseInt(params.page, 10);
-    var perPage = parseInt(params.perPage, 10);
+    var page = params.page.toNumber();
+    var perPage = params.perPage.toNumber();
     var startAt = (perPage * page) - perPage;
     var endAt = startAt + perPage;
     var date = params.date ? decodeURIComponent(params.date) : params.date;
@@ -30846,6 +30846,25 @@ App.Views = {};
 App.Controllers = {};
 App.Dispatcher = _.clone(Backbone.Events);
 
+(function() {
+  var Router = Backbone.Router.extend({
+    routes: {
+      "": "index",
+      "badge/:id": "showBadge"
+    },
+
+    index: function() {
+      App.Dispatcher.trigger("index");
+    },
+
+    showBadge: function(id) {
+      App.Dispatcher.trigger("showBadge", id.toNumber());
+    }
+  });
+  App.Router = new Router;
+  Backbone.history.start();
+})();
+
 this["App"] = this["App"] || {};
 this["App"]["Templates"] = this["App"]["Templates"] || {};
 this["App"]["Templates"]["badge"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
@@ -30874,7 +30893,30 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   if (stack1 = helpers.issuedOn) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
   else { stack1 = (depth0 && depth0.issuedOn); stack1 = typeof stack1 === functionType ? stack1.call(depth0, {hash:{},data:data}) : stack1; }
   buffer += escapeExpression(stack1)
-    + "\n  </p>\n  <div class=\"actions\">\n    <i class=\"fa fa-trash-o\"></i>\n    <button>Details</button>\n  </div>\n</div>\n";
+    + "\n  </p>\n  <div class=\"actions\">\n    <i class=\"fa fa-trash-o\"></i>\n    <a href=\"#/badge/";
+  if (stack1 = helpers.id) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
+  else { stack1 = (depth0 && depth0.id); stack1 = typeof stack1 === functionType ? stack1.call(depth0, {hash:{},data:data}) : stack1; }
+  buffer += escapeExpression(stack1)
+    + "\" class=\"button\">Details</a>\n  </div>\n</div>\n";
+  return buffer;
+  });;
+this["App"] = this["App"] || {};
+this["App"]["Templates"] = this["App"]["Templates"] || {};
+this["App"]["Templates"]["badge_detail"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  var buffer = "", stack1, functionType="function", escapeExpression=this.escapeExpression;
+
+
+  buffer += "<div class=\"badge-image\">\n  <span class=\"ribbon\">";
+  if (stack1 = helpers.ribbonText) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
+  else { stack1 = (depth0 && depth0.ribbonText); stack1 = typeof stack1 === functionType ? stack1.call(depth0, {hash:{},data:data}) : stack1; }
+  buffer += escapeExpression(stack1)
+    + "</span>\n  <img src=\"";
+  if (stack1 = helpers.imageUrl) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
+  else { stack1 = (depth0 && depth0.imageUrl); stack1 = typeof stack1 === functionType ? stack1.call(depth0, {hash:{},data:data}) : stack1; }
+  buffer += escapeExpression(stack1)
+    + "\" />\n</div>\n";
   return buffer;
   });;
 this["App"] = this["App"] || {};
@@ -31166,6 +31208,9 @@ App.Views.BaseView = Backbone.View.extend({
 App.Views.Paginator = App.Views.BaseView.extend({
   template: App.Templates.paginator,
   currentPage: 1,
+  tagName: "nav",
+  className: "pagination",
+  id: "badges-pagination",
   events: {
     "click .page": "handlePageClick",
     "click .previous": "handlePreviousClick",
@@ -31179,7 +31224,6 @@ App.Views.Paginator = App.Views.BaseView.extend({
     this.onAfterFetch = options.onAfterFetch || $.noop;
     this.collection.on("sync", this.render, this);
     App.Dispatcher.on("badgesFiltered", this.resetPagination, this);
-    this.render();
   },
 
   resetPagination: function() {
@@ -31274,10 +31318,19 @@ App.Views.Badge = App.Views.BaseView.extend({
   }
 });
 
+App.Views.BadgeDetail = App.Views.Badge.extend({
+  template: App.Templates.badge_detail,
+  tagName: "div",
+  id: "badge-detail"
+});
+
 (function() {
   var _super = App.Views.CollectionView.prototype;
   App.Views.Badges = App.Views.CollectionView.extend({
     modelName: "Badge",
+    className: "badges",
+    id: "my-badges",
+    tagName: "ul",
     modelView: App.Views.Badge,
     groupsOf: 4,
 
@@ -31309,6 +31362,8 @@ App.Views.Badge = App.Views.BaseView.extend({
 
 App.Views.BadgeFilter = App.Views.BaseView.extend({
   template: App.Templates.badge_filter,
+  tagName: "section",
+  id: "badge-filter",
   events: {
     "click button.search": "handleSearchButtonClick"
   },
@@ -31318,9 +31373,6 @@ App.Views.BadgeFilter = App.Views.BaseView.extend({
     _.bindAll(this, "handleSearchSuccess");
     this.onBeforeFetch = options.onBeforeFetch || $.noop;
     this.onAfterFetch = options.onAfterFetch || $.noop;
-    this.render();
-    this.cacheElements();
-    this.initializeDatepicker();
   },
 
   render: function() {
@@ -31328,6 +31380,9 @@ App.Views.BadgeFilter = App.Views.BaseView.extend({
       statuses: App.Models.Badge.STATUSES,
       types: App.Models.Badge.TYPES
     }));
+    this.cacheElements();
+    this.initializeDatepicker();
+    return this.$el;
   },
 
   cacheElements: function() {
@@ -31378,48 +31433,84 @@ App.Views.BadgeFilter = App.Views.BaseView.extend({
   initIndex: function(userAttributes) {
     this.cacheIndexElements();
     this.user = new App.Models.User(userAttributes);
-    this.user.get("badges").totalCount = this.user.get("badgeCount");
-    this.myBadges.addClass("loading");
+    this.badges = this.user.get("badges");
+    this.badgesView = new App.Views.Badges({ collection: this.badges });
+    this.badgeDetailView = new App.Views.BadgeDetail;
+    this.createBadgeFilterView();
+    this.registerIndexEvents();
     this.fetchBadges();
   },
 
+  cacheIndexElements: function() {
+    this.badgeIndex = $("#badge-index");
+    this.badgeShow = $("#badge-show");
+  },
+
   fetchBadges: function() {
-    this.user.get("badges").fetch()
-      .fail(this.handleBadgeFetchFailure)
-      .done(this.handleBadgesFetchSuccess);
+    if (this.badges.isEmpty()) {
+      this.badges.fetch()
+        .fail(this.handleBadgeFetchFailure)
+        .done(this.handleBadgesFetchSuccess);
+    }
+  },
+
+  registerIndexEvents: function() {
+    App.Dispatcher.on("showBadge", this.handleShowBadge, this);
+    App.Dispatcher.on("index", this.handleIndex, this);
   },
 
   handleBadgesFetchSuccess: function() {
-    this.myBadges.removeClass("loading");
     this.renderBadges();
-    this.badgePaginator = new App.Views.Paginator({
-      el: "#badges-pagination",
-      collection: this.user.get("badges"),
-      onBeforeFetch: this.badgesView.toggleLoading,
-      onAfterFetch: this.badgesView.toggleLoading
-    });
-
-    this.badgeFilter = new App.Views.BadgeFilter({
-      el: "#badge-filter",
-      collection: this.user.get("badges"),
-      onBeforeFetch: this.badgesView.toggleLoading,
-      onAfterFetch: this.badgesView.toggleLoading
-    });
-  },
-
-  cacheIndexElements: function() {
-    this.myBadges = $("#my-badges");
-  },
-
-  renderBadges: function() {
-    this.badgesView = new App.Views.Badges({
-      collection: this.user.get("badges"),
-      el: this.myBadges
-    });
-    this.badgesView.render();
+    this.createPaginationView();
   },
 
   handleBadgeFetchFailure: function(response) {
-    this.myBadges.html("<li>There was an error fetching your badges</li>");
+    this.badgesView.$el.html("<li>There was an error fetching your badges</li>");
+  },
+
+  handleIndex: function() {
+    this.badgeShow.hide();
+    this.badgeIndex.show();
+  },
+
+  handleShowBadge: function(id) {
+    this.badgeIndex.hide();
+    this.badgeShow.show();
+    this.badgeDetailView.model = this.badges.findWhere({ id: id });
+    this.renderBadgeDetail();
+  },
+
+  createPaginationView: function() {
+    this.badgePaginator = new App.Views.Paginator({
+      collection: this.badges,
+      onBeforeFetch: this.badgesView.toggleLoading,
+      onAfterFetch: this.badgesView.toggleLoading
+    });
+    this.renderBadgePagination();
+  },
+
+  createBadgeFilterView: function() {
+    this.badgeFilter = new App.Views.BadgeFilter({
+      collection: this.badges,
+      onBeforeFetch: this.badgesView.toggleLoading,
+      onAfterFetch: this.badgesView.toggleLoading
+    });
+    this.renderBadgeFilter();
+  },
+
+  renderBadges: function() {
+    this.badgeIndex.append(this.badgesView.render());
+  },
+
+  renderBadgePagination: function() {
+    this.badgeIndex.append(this.badgePaginator.render());
+  },
+
+  renderBadgeFilter: function() {
+    this.badgeIndex.append(this.badgeFilter.render());
+  },
+
+  renderBadgeDetail: function() {
+    this.badgeShow.append(this.badgeDetailView.render());
   }
 }).initialize();

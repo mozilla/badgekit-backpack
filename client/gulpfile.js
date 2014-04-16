@@ -36,6 +36,7 @@ gulp.task("js", function() {
     "js/lib/fake_server.js",
     "js/lib/fake_api.js",
     "js/lib/application.js",
+    "js/lib/router.js",
     "js/lib/templates.js",
     "js/models/base_model.js",
     "js/models/base_collection.js",
@@ -44,6 +45,7 @@ gulp.task("js", function() {
     "js/views/collection_view.js",
     "js/views/paginator.js",
     "js/views/badge.js",
+    "js/views/badge_detail.js",
     "js/views/badges.js",
     "js/views/badge_filter.js",
     "js/controllers/**/*.js"

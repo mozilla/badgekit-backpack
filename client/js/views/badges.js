@@ -2,6 +2,9 @@
   var _super = App.Views.CollectionView.prototype;
   App.Views.Badges = App.Views.CollectionView.extend({
     modelName: "Badge",
+    className: "badges",
+    id: "my-badges",
+    tagName: "ul",
     modelView: App.Views.Badge,
     groupsOf: 4,
 

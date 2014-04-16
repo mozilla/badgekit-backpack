@@ -1,5 +1,7 @@
 App.Views.BadgeFilter = App.Views.BaseView.extend({
   template: App.Templates.badge_filter,
+  tagName: "section",
+  id: "badge-filter",
   events: {
     "click button.search": "handleSearchButtonClick"
   },
@@ -9,9 +11,6 @@ App.Views.BadgeFilter = App.Views.BaseView.extend({
     _.bindAll(this, "handleSearchSuccess");
     this.onBeforeFetch = options.onBeforeFetch || $.noop;
     this.onAfterFetch = options.onAfterFetch || $.noop;
-    this.render();
-    this.cacheElements();
-    this.initializeDatepicker();
   },
 
   render: function() {
@@ -19,6 +18,9 @@ App.Views.BadgeFilter = App.Views.BaseView.extend({
       statuses: App.Models.Badge.STATUSES,
       types: App.Models.Badge.TYPES
     }));
+    this.cacheElements();
+    this.initializeDatepicker();
+    return this.$el;
   },
 
   cacheElements: function() {

@@ -8,10 +8,10 @@
     var minute = _.range(1, 61).map(function(i) { return "" + i; }).sample().replace(/^(\d{1})$/, "0$1");
     var seconds = _.range(1, 61).map(function(i) { return "" + i; }).sample().replace(/^(\d{1})$/, "0$1");
 
-    var generatedMonth = parseInt(month, 10);
-    var generatedDay = parseInt(day, 10);
-    var today = parseInt(moment().format("D"), 10);
-    var thisMonth = parseInt(moment().format("M"), 10);
+    var generatedMonth = month.toNumber();
+    var generatedDay = day.toNumber();
+    var today = moment().format("D").toNumber();
+    var thisMonth = moment().format("M").toNumber();
     if (year === moment().format("YYYY") && generatedMonth >= thisMonth) {
       if (generatedMonth > thisMonth) month = ("" + thisMonth).replace(/^(\d{1})$/, "0$1");
       if (generatedDay > today) day = ("" + today).replace(/^(\d{1})$/, "0$1");
@@ -25,7 +25,7 @@
       {
         id: 1,
         user: Faker.Internet.email(),
-        sharingAllowed: [true, false].sample(),
+        sharingAllowed: true,
         badges: _.times(50, function(i) {
           var id = i + 1;
           return {
@@ -61,8 +61,8 @@
   });
 
   FakeServer.route("get", "/user/:id/badges", function(id, params) {
-    var page = parseInt(params.page, 10);
-    var perPage = parseInt(params.perPage, 10);
+    var page = params.page.toNumber();
+    var perPage = params.perPage.toNumber();
     var startAt = (perPage * page) - perPage;
     var endAt = startAt + perPage;
     var date = params.date ? decodeURIComponent(params.date) : params.date;

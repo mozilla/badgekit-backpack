@@ -36,7 +36,7 @@ describe("App.Views.Badge", function() {
 
     it("renders the model data in the template", function() {
       expect(subject.$el.find(".inner")).toHaveClass(badgeJSON.statusClass);
-      expect(subject.$el.find(".description")).toHaveText(badgeJSON.description);
+      expect(subject.$el.find(".description").text()).toMatch(badgeJSON.description);
       expect(subject.$el.find("img")).toHaveAttribute("src", badgeJSON.imageUrl);
       expect(subject.$el.find(".ribbon")).toHaveText(badgeJSON.ribbonText);
     });
@@ -57,29 +57,29 @@ describe("App.Views.Badge", function() {
     });
   });
 
-  // describe("statusClass", function() {
-  //   it("returns a lower-cased, hyphenated version of the model's status", function() {
-  //     subject.model.set("status", "Some Status");
-  //     subject.model.set("isFavorite", false);
-  //     expect(subject.statusClass()).toEqual("some-status");
-  //   });
+  describe("statusClass", function() {
+    it("returns a lower-cased, hyphenated version of the model's status", function() {
+      subject.model.set("status", "Some Status");
+      subject.model.set("isFavorite", false);
+      expect(subject.statusClass()).toEqual("some-status");
+    });
 
-  //   it("returns favorite if the model is a favorite", function() {
-  //     subject.model.set("isFavorite", true);
-  //     expect(subject.statusClass()).toEqual("favorite");
-  //   });
-  // });
+    it("returns favorite if the model is a favorite", function() {
+      subject.model.set("isFavorite", true);
+      expect(subject.statusClass()).toEqual("favorite");
+    });
+  });
 
-  // describe("ribbonText", function() {
-  //   it("returns a title case version of the model's status", function() {
-  //     subject.model.set("status", "some status");
-  //     subject.model.set("isFavorite", false);
-  //     expect(subject.ribbonText()).toEqual("Some Status");
-  //   });
+  describe("ribbonText", function() {
+    it("returns a title case version of the model's status", function() {
+      subject.model.set("status", "some status");
+      subject.model.set("isFavorite", false);
+      expect(subject.ribbonText()).toEqual("Some Status");
+    });
 
-  //   it("returns favorite if the model is a favorite", function() {
-  //     subject.model.set("isFavorite", true);
-  //     expect(subject.ribbonText()).toEqual("Favorite");
-  //   });
-  // });
+    it("returns favorite if the model is a favorite", function() {
+      subject.model.set("isFavorite", true);
+      expect(subject.ribbonText()).toEqual("Favorite");
+    });
+  });
 });

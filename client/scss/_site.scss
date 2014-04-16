@@ -25,3 +25,8 @@
   white-space: nowrap;
   overflow: hidden;
 }
+
+a.button {
+  @include button;
+  font-size: 1em;
+}

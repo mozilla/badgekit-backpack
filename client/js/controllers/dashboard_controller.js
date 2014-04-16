@@ -9,48 +9,84 @@
   initIndex: function(userAttributes) {
     this.cacheIndexElements();
     this.user = new App.Models.User(userAttributes);
-    this.user.get("badges").totalCount = this.user.get("badgeCount");
-    this.myBadges.addClass("loading");
+    this.badges = this.user.get("badges");
+    this.badgesView = new App.Views.Badges({ collection: this.badges });
+    this.badgeDetailView = new App.Views.BadgeDetail;
+    this.createBadgeFilterView();
+    this.registerIndexEvents();
     this.fetchBadges();
   },
 
+  cacheIndexElements: function() {
+    this.badgeIndex = $("#badge-index");
+    this.badgeShow = $("#badge-show");
+  },
+
   fetchBadges: function() {
-    this.user.get("badges").fetch()
-      .fail(this.handleBadgeFetchFailure)
-      .done(this.handleBadgesFetchSuccess);
+    if (this.badges.isEmpty()) {
+      this.badges.fetch()
+        .fail(this.handleBadgeFetchFailure)
+        .done(this.handleBadgesFetchSuccess);
+    }
+  },
+
+  registerIndexEvents: function() {
+    App.Dispatcher.on("showBadge", this.handleShowBadge, this);
+    App.Dispatcher.on("index", this.handleIndex, this);
   },
 
   handleBadgesFetchSuccess: function() {
-    this.myBadges.removeClass("loading");
     this.renderBadges();
-    this.badgePaginator = new App.Views.Paginator({
-      el: "#badges-pagination",
-      collection: this.user.get("badges"),
-      onBeforeFetch: this.badgesView.toggleLoading,
-      onAfterFetch: this.badgesView.toggleLoading
-    });
-
-    this.badgeFilter = new App.Views.BadgeFilter({
-      el: "#badge-filter",
-      collection: this.user.get("badges"),
-      onBeforeFetch: this.badgesView.toggleLoading,
-      onAfterFetch: this.badgesView.toggleLoading
-    });
-  },
-
-  cacheIndexElements: function() {
-    this.myBadges = $("#my-badges");
-  },
-
-  renderBadges: function() {
-    this.badgesView = new App.Views.Badges({
-      collection: this.user.get("badges"),
-      el: this.myBadges
-    });
-    this.badgesView.render();
+    this.createPaginationView();
   },
 
   handleBadgeFetchFailure: function(response) {
-    this.myBadges.html("<li>There was an error fetching your badges</li>");
+    this.badgesView.$el.html("<li>There was an error fetching your badges</li>");
+  },
+
+  handleIndex: function() {
+    this.badgeShow.hide();
+    this.badgeIndex.show();
+  },
+
+  handleShowBadge: function(id) {
+    this.badgeIndex.hide();
+    this.badgeShow.show();
+    this.badgeDetailView.model = this.badges.findWhere({ id: id });
+    this.renderBadgeDetail();
+  },
+
+  createPaginationView: function() {
+    this.badgePaginator = new App.Views.Paginator({
+      collection: this.badges,
+      onBeforeFetch: this.badgesView.toggleLoading,
+      onAfterFetch: this.badgesView.toggleLoading
+    });
+    this.renderBadgePagination();
+  },
+
+  createBadgeFilterView: function() {
+    this.badgeFilter = new App.Views.BadgeFilter({
+      collection: this.badges,
+      onBeforeFetch: this.badgesView.toggleLoading,
+      onAfterFetch: this.badgesView.toggleLoading
+    });
+    this.renderBadgeFilter();
+  },
+
+  renderBadges: function() {
+    this.badgeIndex.append(this.badgesView.render());
+  },
+
+  renderBadgePagination: function() {
+    this.badgeIndex.append(this.badgePaginator.render());
+  },
+
+  renderBadgeFilter: function() {
+    this.badgeIndex.append(this.badgeFilter.render());
+  },
+
+  renderBadgeDetail: function() {
+    this.badgeShow.append(this.badgeDetailView.render());
   }
 }).initialize();

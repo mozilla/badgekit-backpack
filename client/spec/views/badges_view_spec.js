@@ -22,6 +22,18 @@ describe("App.Views.Badges", function() {
     expect(subject.groupsOf).toBeNumber();
   });
 
+  it("is an unordered list", function() {
+    expect(subject.tagName).toEqual("ul");
+  });
+
+  it("has a badges class", function() {
+    expect(subject.className).toEqual("badges");
+  });
+
+  it("has an id of my-badges", function() {
+    expect(subject.id).toEqual("my-badges");
+  });
+
   describe("lastInGroup", function() {
     var lastView;
     var firstView;

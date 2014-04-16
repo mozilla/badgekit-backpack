@@ -24,6 +24,18 @@ describe("App.Views.Paginator", function() {
     expect(subject.currentPage).toEqual(1);
   });
 
+  it("is a nav tag", function() {
+    expect(subject.tagName).toEqual("nav");
+  });
+
+  it("has a pagination class", function() {
+    expect(subject.className).toEqual("pagination");
+  });
+
+  it("has a badges-pagination id", function() {
+    expect(subject.id).toEqual("badges-pagination");
+  });
+
   describe("initialize", function() {
     beforeEach(function() {
       spyOn(_, "bindAll");
@@ -33,10 +45,6 @@ describe("App.Views.Paginator", function() {
 
     it("binds externally called methods", function() {
       expect(_.bindAll).toHaveBeenCalledWith(subject, "createPageObject", "toggleLoading", "handlePageFetchSuccess");
-    });
-
-    it("renders the view", function() {
-      expect(subject.render).toHaveBeenCalled();
     });
   });
 

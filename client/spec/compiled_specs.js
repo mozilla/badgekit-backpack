@@ -379,19 +379,16 @@ describe("FakeServer", function() {
   });
 });
 
-FakeServer.responseTime = 1;
+  FakeServer.responseTime = 1;
 
 describe("App.Controllers.Dashboard", function() {
   var subject;
   var userAttributes;
-  var $myBadges;
-  var $badgesPagination;
-  var $badgeFilter;
+  var $badgeIndex;
   beforeEach(function() {
     userAttributes = _.clone(FakeAPI.users.first());
-    $myBadges = affix("#my-badges");
-    $badgeFilter = affix("#badge-filter");
-    $badgesPagination = affix("#badges-pagination");
+    $badgeIndex = affix("#badge-index");
+    $badgeShow = affix("#badge-show");
     subject = App.Controllers.Dashboard;
   });
 
@@ -413,6 +410,7 @@ describe("App.Controllers.Dashboard", function() {
       beforeEach(function() {
         spyOn(subject, "cacheIndexElements").and.callThrough();
         spyOn(subject, "fetchBadges");
+        spyOn(subject, "registerIndexEvents");
         subject.initIndex({ id: 1 });
       });
 
@@ -425,24 +423,55 @@ describe("App.Controllers.Dashboard", function() {
         expect(subject.user.id).toEqual(1);
       });
 
+      it("sets the badges", function() {
+        expect(subject.badges).toEqual(subject.user.get("badges"));
+      });
+
       it("fetches the user", function() {
         expect(subject.fetchBadges).toHaveBeenCalled();
       });
 
-      it("toggles loading on the badges element", function() {
-        expect(subject.myBadges).toHaveClass("loading");
+      it("creates a badges list view", function() {
+        expect(subject.badgesView).toBeTypeof(App.Views.Badges);
+      });
+
+      it("creates a badge detail view", function() {
+        expect(subject.badgeDetailView).toBeTypeof(App.Views.BadgeDetail);
+      });
+
+      it("creates a badge filter view", function() {
+        expect(subject.badgeFilter).toBeTypeof(App.Views.BadgeFilter);
+        expect(subject.badgeFilter.collection).toEqual(subject.badges);
+      });
+
+      it("registers the index events", function() {
+        expect(subject.registerIndexEvents).toHaveBeenCalled();
+      });
+    });
+
+    describe("cacheIndexElements", function() {
+      beforeEach(function() {
+        subject.cacheIndexElements();
+      });
+
+      it("has a badgeIndex reference", function() {
+        expect(subject.badgeIndex).toBeJqueryWrapped("#badge-index");
+      });
+
+      it("has a badgeShow reference", function() {
+        expect(subject.badgeShow).toBeJqueryWrapped("#badge-show");
       });
     });
 
     describe("fetchBadges", function() {
       beforeEach(function() {
         subject.user = new App.Models.User({ id: 1 });
-        spyOn(subject.user.get("badges"), "fetch").and.returnValue(promiseStub);
+        spyOn(subject.badges, "fetch").and.returnValue(promiseStub);
         subject.fetchBadges();
       });
 
       it("fetches the user", function() {
-        expect(subject.user.get("badges").fetch).toHaveBeenCalled();
+        expect(subject.badges.fetch).toHaveBeenCalled();
       });
 
       it("calls handleBadgesFetchSuccess when done", function() {
@@ -454,13 +483,21 @@ describe("App.Controllers.Dashboard", function() {
       });
     });
 
-    describe("cacheIndexElements", function() {
+    describe("registerIndexEvents", function() {
       beforeEach(function() {
-        subject.cacheIndexElements();
+        spyOn(subject, "handleShowBadge");
+        spyOn(subject, "handleIndex");
+        subject.registerIndexEvents();
       });
 
-      it("has a myBadges reference", function() {
-        expect(subject.myBadges).toBeJqueryWrapped("#my-badges");
+      it("registers handleShowBadge to the showBadge event", function() {
+        App.Dispatcher.trigger("showBadge", 1);
+        expect(subject.handleShowBadge).toHaveBeenCalled();
+      });
+
+      it("registers handleIndex to the index event", function() {
+        App.Dispatcher.trigger("index");
+        expect(subject.handleIndex).toHaveBeenCalled();
       });
     });
 
@@ -477,24 +514,72 @@ describe("App.Controllers.Dashboard", function() {
 
       it("creates a paginator view", function() {
         expect(subject.badgePaginator).toBeTypeof(App.Views.Paginator);
-        expect(subject.badgePaginator.$el).toBeJqueryWrapped("#badges-pagination");
-        expect(subject.badgePaginator.collection).toEqual(subject.user.get("badges"));
+        expect(subject.badgePaginator.collection).toEqual(subject.badges);
+      });
+    });
+
+    describe("handleBadgeFetchFailure", function() {
+      beforeEach(function() {
+        subject.handleBadgeFetchFailure();
       });
 
-      it("creates a BadgeFilter view", function() {
+      it("renders an error message", function() {
+        expect(subject.badgesView.$el).toHaveText("There was an error fetching your badges");
+      });
+    });
+
+    describe("handleShowBadge", function() {
+      beforeEach(function() {
+        subject.badges = new App.Collections.Badges(_.clone(userAttributes.badges.first()));
+        subject.handleShowBadge(1);
+      });
+
+      it("finds the model by id", function() {
+        expect(subject.badgeDetailView.model).toEqual(subject.badges.findWhere({ id: 1 }));
+      });
+
+      it("renders the detail view", function() {
+        expect(subject.badgeIndex.find("#badge-detail").length).toBeGreaterThan(0);
+      });
+    });
+
+    describe("createPaginationView", function() {
+      beforeEach(function() {
+        subject.badgePaginator = undefined;
+        spyOn(subject, "renderBadgePagination");
+        subject.createPaginationView();
+      });
+
+      it("creates a pagination view", function() {
+        expect(subject.badgePaginator).toBeTypeof(App.Views.Paginator);
+      });
+
+      it("renders the badgePaginator", function() {
+        expect(subject.renderBadgePagination).toHaveBeenCalled();
+      });
+    });
+
+    describe("createBadgeFilterView", function() {
+      beforeEach(function() {
+        subject.badgeFilter = undefined;
+        spyOn(subject, "renderBadgeFilter");
+        subject.createBadgeFilterView();
+      });
+
+      it("creates a badge filter view", function() {
         expect(subject.badgeFilter).toBeTypeof(App.Views.BadgeFilter);
-        expect(subject.badgeFilter.$el).toBeJqueryWrapped("#badge-filter");
-        expect(subject.badgeFilter.collection).toEqual(subject.user.get("badges"));
       });
 
-      it("toggles the loading on myBadges", function() {
-        expect(subject.myBadges).not.toHaveClass("loading");
+      it("renders the badge filters", function() {
+        expect(subject.renderBadgeFilter).toHaveBeenCalled();
       });
     });
 
     describe("renderBadges", function() {
       beforeEach(function() {
         subject.user = new App.Models.User(userAttributes);
+        subject.badgesView.collection = subject.user.get("badges");
+        subject.cacheIndexElements();
         subject.renderBadges();
       });
 
@@ -505,19 +590,65 @@ describe("App.Controllers.Dashboard", function() {
       it("renders the badges view", function() {
         var size = userAttributes.badges.length;
         var expectedChildCount = Math.floor(size + (size / 4));
-        expect(subject.myBadges.children().length).toEqual(expectedChildCount);
+
+        expect(subject.badgesView.$el.children().length).toEqual(expectedChildCount);
+      });
+
+      it("appends the badges view to the badge-index element", function() {
+        expect($badgeIndex.children().length).toBeGreaterThan(0);
+        expect($badgeIndex.find("#my-badges").length).toBeGreaterThan(0);
       });
     });
 
-    describe("handleBadgeFetchFailure", function() {
+    describe("renderBadgeDetail", function() {
       beforeEach(function() {
-        subject.handleBadgeFetchFailure();
+        subject.badgeIndex = $badgeIndex;
+        subject.badgeDetailView.model = new App.Models.Badge(_.clone(FakeAPI.users.first().badges.first()));
+        subject.renderBadgeDetail();
       });
 
-      it("renders an error message", function() {
-        expect(subject.myBadges).toHaveText("There was an error fetching your badges");
+      it("renders the badge detail into the badgeIndex", function() {
+        expect($badgeIndex.children().length).toBeGreaterThan(0);
+        expect($badgeIndex.find("#badge-detail").length).toBeGreaterThan(0);
       });
     });
+
+    describe("renderBadgePagination", function() {
+      beforeEach(function() {
+        subject.badgeIndex = $badgeIndex;
+        subject.badgePaginator.collection = new App.Collections.Badges(_.clone(userAttributes.badges));
+        subject.renderBadgePagination();
+      });
+
+      it("renders the badge pagiantion into the badgeIndex", function() {
+        expect($badgeIndex.children().length).toBeGreaterThan(0);
+        expect($badgeIndex.find("#badges-pagination").length).toBeGreaterThan(0);
+      });
+    });
+
+    describe("renderBadgeFilter", function() {
+      beforeEach(function() {
+        subject.badgeIndex = $badgeIndex;
+        subject.badgeFilter.collection = new App.Collections.Badges(_.clone(userAttributes.badges));
+        subject.renderBadgeFilter();
+      });
+
+      it("renders the badge pagiantion into the badgeIndex", function() {
+        expect($badgeIndex.children().length).toBeGreaterThan(0);
+        expect($badgeIndex.find("#badge-filter").length).toBeGreaterThan(0);
+      });
+    });
+  });
+});
+
+describe("App.Router", function() {
+  var subject;
+  beforeEach(function() {
+    subject = App.Router;
+  });
+
+  it("has a badge detail route", function() {
+    expect(subject.routes["badge/:id"]).toEqual("showBadge");
   });
 });
 
@@ -693,6 +824,32 @@ describe("App.Models.User", function() {
   });
 });
 
+describe("App.Views.BadgeDetail", function() {
+  var subject;
+  var badge;
+  beforeEach(function() {
+    affix("#container");
+    badge = new App.Models.Badge(_.clone(FakeAPI.users.first().badges.first()));
+    subject = new App.Views.BadgeDetail({
+      el: "#container",
+      model: badge
+    });
+  });
+
+  it("has a template", function() {
+    expect(subject.template).toBeDefined();
+  });
+
+  it("has an id", function() {
+    expect(subject.id).toEqual("badge-detail");
+  });
+
+  it("is a div", function() {
+    expect(subject.tagName).toEqual("div");
+  });
+
+});
+
 describe("App.Views.BadgeFilter", function() {
   var subject;
   var collection;
@@ -710,24 +867,18 @@ describe("App.Views.BadgeFilter", function() {
     expect(subject.template).toEqual(App.Templates.badge_filter);
   });
 
+  it("is a section tag", function() {
+    expect(subject.tagName).toEqual("section");
+  });
+
+  it("has a badge-filter id", function() {
+    expect(subject.id).toEqual("badge-filter");
+  });
+
   describe("initialize", function() {
     beforeEach(function() {
       spyOn(subject, "render");
-      spyOn(subject, "cacheElements");
-      spyOn(subject, "initializeDatepicker");
       subject.initialize();
-    });
-
-    it("renders the view", function() {
-      expect(subject.render).toHaveBeenCalled();
-    });
-
-    it("caches the elements", function() {
-      expect(subject.cacheElements).toHaveBeenCalled();
-    });
-
-    it("initializes the datepicker", function() {
-      expect(subject.initializeDatepicker).toHaveBeenCalled();
     });
 
     it("sets onBeforeFetch to a noop by default", function() {
@@ -764,6 +915,8 @@ describe("App.Views.BadgeFilter", function() {
 
   describe("render", function() {
     beforeEach(function() {
+      spyOn(subject, "cacheElements").and.callThrough();
+      spyOn(subject, "initializeDatepicker");
       subject.render();
     });
 
@@ -781,6 +934,14 @@ describe("App.Views.BadgeFilter", function() {
       App.Models.Badge.TYPES.each(function(type) {
         expect(subject.$el.find('[name="filter-badge-type"] option').text()).toMatch(type);
       });
+    });
+
+    it("caches the elements", function() {
+      expect(subject.cacheElements).toHaveBeenCalled();
+    });
+
+    it("initializes the datepicker", function() {
+      expect(subject.initializeDatepicker).toHaveBeenCalled();
     });
   });
 
@@ -809,6 +970,7 @@ describe("App.Views.BadgeFilter", function() {
 
   describe("initializeDatepicker", function() {
     beforeEach(function() {
+      subject.render();
       spyOn(subject.dateField, "datepicker");
       subject.initializeDatepicker();
     });
@@ -874,6 +1036,7 @@ describe("App.Views.BadgeFilter", function() {
 
   describe("handleSearchSuccess", function() {
     beforeEach(function() {
+      subject.render();
       spyOn(subject, "onAfterFetch");
       spyOn(subject, "toggleLoading");
       subject.handleSearchSuccess();
@@ -933,7 +1096,7 @@ describe("App.Views.Badge", function() {
 
     it("renders the model data in the template", function() {
       expect(subject.$el.find(".inner")).toHaveClass(badgeJSON.statusClass);
-      expect(subject.$el.find(".description")).toHaveText(badgeJSON.description);
+      expect(subject.$el.find(".description").text()).toMatch(badgeJSON.description);
       expect(subject.$el.find("img")).toHaveAttribute("src", badgeJSON.imageUrl);
       expect(subject.$el.find(".ribbon")).toHaveText(badgeJSON.ribbonText);
     });
@@ -954,31 +1117,31 @@ describe("App.Views.Badge", function() {
     });
   });
 
-  // describe("statusClass", function() {
-  //   it("returns a lower-cased, hyphenated version of the model's status", function() {
-  //     subject.model.set("status", "Some Status");
-  //     subject.model.set("isFavorite", false);
-  //     expect(subject.statusClass()).toEqual("some-status");
-  //   });
+  describe("statusClass", function() {
+    it("returns a lower-cased, hyphenated version of the model's status", function() {
+      subject.model.set("status", "Some Status");
+      subject.model.set("isFavorite", false);
+      expect(subject.statusClass()).toEqual("some-status");
+    });
 
-  //   it("returns favorite if the model is a favorite", function() {
-  //     subject.model.set("isFavorite", true);
-  //     expect(subject.statusClass()).toEqual("favorite");
-  //   });
-  // });
+    it("returns favorite if the model is a favorite", function() {
+      subject.model.set("isFavorite", true);
+      expect(subject.statusClass()).toEqual("favorite");
+    });
+  });
 
-  // describe("ribbonText", function() {
-  //   it("returns a title case version of the model's status", function() {
-  //     subject.model.set("status", "some status");
-  //     subject.model.set("isFavorite", false);
-  //     expect(subject.ribbonText()).toEqual("Some Status");
-  //   });
+  describe("ribbonText", function() {
+    it("returns a title case version of the model's status", function() {
+      subject.model.set("status", "some status");
+      subject.model.set("isFavorite", false);
+      expect(subject.ribbonText()).toEqual("Some Status");
+    });
 
-  //   it("returns favorite if the model is a favorite", function() {
-  //     subject.model.set("isFavorite", true);
-  //     expect(subject.ribbonText()).toEqual("Favorite");
-  //   });
-  // });
+    it("returns favorite if the model is a favorite", function() {
+      subject.model.set("isFavorite", true);
+      expect(subject.ribbonText()).toEqual("Favorite");
+    });
+  });
 });
 
 describe("App.Views.Badges", function() {
@@ -1003,6 +1166,18 @@ describe("App.Views.Badges", function() {
 
   it("has a groups of property", function() {
     expect(subject.groupsOf).toBeNumber();
+  });
+
+  it("is an unordered list", function() {
+    expect(subject.tagName).toEqual("ul");
+  });
+
+  it("has a badges class", function() {
+    expect(subject.className).toEqual("badges");
+  });
+
+  it("has an id of my-badges", function() {
+    expect(subject.id).toEqual("my-badges");
   });
 
   describe("lastInGroup", function() {
@@ -1322,6 +1497,18 @@ describe("App.Views.Paginator", function() {
     expect(subject.currentPage).toEqual(1);
   });
 
+  it("is a nav tag", function() {
+    expect(subject.tagName).toEqual("nav");
+  });
+
+  it("has a pagination class", function() {
+    expect(subject.className).toEqual("pagination");
+  });
+
+  it("has a badges-pagination id", function() {
+    expect(subject.id).toEqual("badges-pagination");
+  });
+
   describe("initialize", function() {
     beforeEach(function() {
       spyOn(_, "bindAll");
@@ -1331,10 +1518,6 @@ describe("App.Views.Paginator", function() {
 
     it("binds externally called methods", function() {
       expect(_.bindAll).toHaveBeenCalledWith(subject, "createPageObject", "toggleLoading", "handlePageFetchSuccess");
-    });
-
-    it("renders the view", function() {
-      expect(subject.render).toHaveBeenCalled();
     });
   });
 

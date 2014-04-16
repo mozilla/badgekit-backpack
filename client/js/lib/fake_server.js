@@ -99,7 +99,7 @@ FakeServer = {
     if (isFunction(routePayload)) {
       var args = url.path.match(pattern).rest();
       args = args.map(function(arg) {
-        return /[0-9]+/.test(arg) ? parseInt(arg, 10) : arg;
+        return /[0-9]+/.test(arg) ? arg.toNumber() : arg;
       });
       args.push(url.params);
       return routePayload.apply(null, args);

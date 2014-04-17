@@ -1034,7 +1034,7 @@ describe("App.Views.Badge", function() {
     });
 
     it("renders the model data in the template", function() {
-      expect(subject.$el.find("img")).toHaveAttribute("src", badgeJSON.imageUrl);
+      expect(subject.$el.find("a")).toHaveAttribute("style", "background-image: url(" + badgeJSON.imageUrl + ");");
     });
   });
 

@@ -103,8 +103,8 @@ function isDefined(suspect) {
 }
 (function() {
   var methods = [
-    'each', 'keys', 'values', 'pairs', 'invert',
-    'functions', 'pick', 'omit', 'defaults', 'map'
+    "each", "keys", "values", "pairs", "invert",
+    "functions", "pick", "omit", "defaults", "map"
   ];
 
   _.each(methods, function(method) {

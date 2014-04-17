@@ -1,17 +1,15 @@
 (function() {
   var Router = Backbone.Router.extend({
     routes: {
-      "": "index",
+      "badges": "index",
       "badge/:id": "showBadge"
     },
 
     index: function() {
-      console.log("index");
       App.Dispatcher.trigger("index");
     },
 
     showBadge: function(id) {
-      console.log("showBadge");
       App.Dispatcher.trigger("showBadge", id.toNumber());
     }
   });

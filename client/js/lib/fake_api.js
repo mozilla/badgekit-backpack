@@ -16,7 +16,7 @@
       if (generatedMonth > thisMonth) month = ("" + thisMonth).replace(/^(\d{1})$/, "0$1");
       if (generatedDay > today) day = ("" + today).replace(/^(\d{1})$/, "0$1");
     }
-    var dateTime = [[year, month, day].join("-"), [hour, minute, seconds].join(":")].join(" ")
+    var dateTime = [[year, month, day].join("-"), [hour, minute, seconds].join(":")].join(" ");
     return dateTime;
   }
 
@@ -32,7 +32,7 @@
             id: id,
             name: Faker.Company.bs(),
             status: ["awarded", "in queue", "reviewed"].sample(),
-            description: Faker.Lorem.paragraph(),
+            description: Faker.Lorem.paragraph().capitalize() + ".",
             issuerUrl: "http://example.com",
             earnerDescription: Faker.Lorem.paragraph(),
             consumerDescription: Faker.Lorem.paragraph(),
@@ -47,9 +47,23 @@
             isNew: [true, false].sample(),
             imageUrl: location.origin + "/images/default-badge.png",
             badgeJSONUrl: location.origin + "/user/1/badges/" + id,
-            evidenceUrl: location.origin + "/user/1/badges/" + id,
+            evidenceUrl: "http://example.com",
             issuedOn: fakeDate(),
-            expires: fakeDate()
+            expires: fakeDate(),
+            evidence: {
+              text: Faker.Lorem.paragraph().capitalize() + ".",
+              media: _.times(_.random(1, 3), function() {
+                var type = ["youtube", "image"].sample();
+                var evidenceMap = {
+                  youtube: ["//www.youtube.com/embed/dQw4w9WgXcQ", "//www.youtube.com/embed/ScMzIvxBSi4"].sample(),
+                  image: "//placehold.it/325x206"
+                };
+                return {
+                  type: type,
+                  url: evidenceMap[type]
+                };
+              })
+            }
           };
         })
       }
@@ -72,6 +86,7 @@
     });
     var user = FakeAPI.users.findWhere({ id: id });
     var badges = _.size(searchParams) ? user.badges.where(searchParams) : user.badges;
+
     if (date) {
       badges = badges.map(function(badge) {
         var issuedOn = moment(badge.issuedOn);
@@ -88,4 +103,6 @@
   FakeServer.route("get", "/user/:id/badges/:badgeId", function(id, badgeId) {
     return FakeAPI.users.findWhere({ id: id }).badges.findWhere({ id: badgeId });
   });
+
+  FakeServer.route("get", "/foo", { foo: "bar" });
 })(this);

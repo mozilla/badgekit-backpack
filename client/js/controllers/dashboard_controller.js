@@ -11,13 +11,16 @@
     this.user = new App.Models.User(userAttributes);
     this.badges = this.user.get("badges");
     this.badgesView = new App.Views.Badges({ collection: this.badges });
-    this.badgeDetailView = new App.Views.BadgeDetail;
-    this.createBadgeFilterView();
+    this.badgeDetailView = new App.Views.BadgeDetail({
+      user: this.user
+    });
     this.registerIndexEvents();
     this.fetchBadges();
   },
 
   cacheIndexElements: function() {
+    this.badgesContainer = $("#badges-container");
+    this.badgeContainer = $("#badge-container");
     this.badgeIndex = $("#badge-index");
     this.badgeShow = $("#badge-show");
   },
@@ -75,21 +78,23 @@
       onAfterFetch: this.badgesView.toggleLoading
     });
     this.renderBadgeFilter();
+    this.badgeFilter.cacheElements();
+    this.badgeFilter.initializeDatepicker();
   },
 
   renderBadges: function() {
-    this.badgeIndex.append(this.badgesView.render());
+    this.badgesContainer.append(this.badgesView.render());
   },
 
   renderBadgePagination: function() {
-    this.badgeIndex.append(this.badgePaginator.render());
+    this.badgesContainer.append(this.badgePaginator.render());
   },
 
   renderBadgeFilter: function() {
-    this.badgeIndex.append(this.badgeFilter.render());
+    this.badgesContainer.append(this.badgeFilter.render());
   },
 
   renderBadgeDetail: function() {
-    this.badgeShow.append(this.badgeDetailView.render());
+    this.badgeContainer.append(this.badgeDetailView.render());
   }
 }).initialize();

@@ -1,4 +1,5 @@
 App.Models.Badge = App.Models.BaseModel.extend({
+  dateFormat: "MMMM D, YYYY",
   urlRoot: function() {
     return "/user/" + this.get("earnerId") + "/badges/" + this.id;
   },
@@ -12,9 +13,9 @@ App.Models.Badge = App.Models.BaseModel.extend({
 
   toJSON: function() {
     var attributes = _.clone(this.attributes);
-    if (attributes.createdOn) attributes.createdOn = attributes.createdOn.format("M/D/YY");
-    if (attributes.issuedOn) attributes.issuedOn = attributes.issuedOn.format("M/D/YY");
-    if (attributes.expires) attributes.expires = attributes.expires.format("M/D/YY");
+    if (attributes.createdOn) attributes.createdOn = attributes.createdOn.format(this.dateFormat);
+    if (attributes.issuedOn) attributes.issuedOn = attributes.issuedOn.format(this.dateFormat);
+    if (attributes.expires) attributes.expires = attributes.expires.format(this.dateFormat);
     return attributes;
   }
 },{

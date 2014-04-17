@@ -63,12 +63,9 @@
 
 .content-header {
   @include row;
-
-  p {
-    @include span-columns(8);
-    @include shift(2);
-    @include omega;
-  }
+  padding: 2em 0;
+  border-top: solid 1px $grey5;
+  border-bottom: solid 1px $grey5;
 }
 
 #badge-filter {
@@ -157,52 +154,21 @@
       border: solid 1px $grey5;
       box-shadow: 0px 0px 10px rgba(0, 0, 0, .5);
       padding: 1em;
-    }
 
-    .in-queue {
-      .ribbon {
+      a {
+        display: block;
+        width: 187px;
+        height: 187px;
+
         background: {
-          color: $in-queue-ribbon-color;
+          position: center center;
+          size: 165%;
+          repeat: no-repeat;
         }
-      }
-    }
 
-    .awarded {
-      .ribbon {
-        background: {
-          color: $awarded-ribbon-color;
+        &:hover {
+          background-size: 100%;
         }
-      }
-    }
-
-    .reviewed {
-      .ribbon {
-        background: {
-          color: $reviewed-ribbon-color;
-        }
-      }
-    }
-
-    .favorite {
-      .ribbon {
-        background: {
-          color: $favorite-ribbon-color;
-        }
-      }
-    }
-
-    .ribbon {
-      @include transform(rotate(-45deg));
-      width: 300px;
-      display: block;
-      padding-top: .25em;
-      padding-bottom: .25em;
-      position: absolute;
-      padding: .25em 0 .25em 80%;
-      left: -50%;
-      top: 21%;
-      background: {
-        color: $red;
       }
     }
 
@@ -224,6 +190,53 @@
     .button {
       float: right;
     }
+  }
+}
+
+.in-queue {
+  .ribbon {
+    background: {
+      color: $in-queue-ribbon-color;
+    }
+  }
+}
+
+.awarded {
+  .ribbon {
+    background: {
+      color: $awarded-ribbon-color;
+    }
+  }
+}
+
+.reviewed {
+  .ribbon {
+    background: {
+      color: $reviewed-ribbon-color;
+    }
+  }
+}
+
+.favorite {
+  .ribbon {
+    background: {
+      color: $favorite-ribbon-color;
+    }
+  }
+}
+
+.ribbon {
+  @include transform(rotate(-45deg));
+  width: 300px;
+  display: block;
+  padding-top: .25em;
+  padding-bottom: .25em;
+  position: absolute;
+  padding: .25em 0 .25em 80%;
+  left: -50%;
+  top: 21%;
+  background: {
+    color: $red;
   }
 }
 
@@ -279,4 +292,90 @@
 
 #footer {
   @include row;
+}
+
+#badge-show {
+  @include row;
+  display: none;
+  padding: 2em;
+}
+
+#badge-detail {
+  @include fill-parent;
+  @include clearfix;
+  position: relative;
+
+  .badge-image {
+    @include span-columns(4 of 12);
+    position: relative;
+    overflow: hidden;
+    border: solid 1px $grey5;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, .5);
+    background: {
+      color: $badge-bg-color;
+    }
+
+    .ribbon {
+      width: 520px;
+      padding-left: 71%;
+    }
+  }
+
+  .badge-info {
+    @include row;
+  }
+
+  .badge-details {
+    @include span-columns(8 of 12);
+    @include omega;
+
+    .badge-name {
+      @include fill-parent;
+      text-align: left;
+    }
+
+    .columns {
+      @include row;
+
+      strong {
+        @include span-columns(2 of 8);
+      }
+
+      span,
+      p {
+        @include span-columns(6 of 8);
+      }
+    }
+  }
+
+  .badge-evidence {
+    @include row;
+    clear: both;
+    margin-top: 2em;
+
+    .evidence {
+      @include span-columns(4);
+
+      img {
+        padding: 5px;
+        background: {
+          color: $white;
+        }
+      }
+
+      &:nth-child(3) {
+        @include omega;
+      }
+    }
+
+    p {
+      @include span-columns(12);
+      clear: both;
+      padding: 2em 0;
+    }
+  }
+}
+
+.breadcrumbs {
+  @extend %breadcrumb;
 }

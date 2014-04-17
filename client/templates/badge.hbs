@@ -1,12 +1,3 @@
 <div class="inner {{ statusClass }}">
-  <span class="ribbon">{{ ribbonText }}</span>
-  <img src="{{ imageUrl }}" />
-  <p class="description">
-    {{ description }}
-    {{ issuedOn }}
-  </p>
-  <div class="actions">
-    <i class="fa fa-trash-o"></i>
-    <a href="#/badge/{{ id }}" class="button">Details</a>
-  </div>
+  <a href="#/badge/{{ id }}" style="background-image: url({{ imageUrl }});"></a>
 </div>

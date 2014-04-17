@@ -22077,8 +22077,8 @@ function isDefined(suspect) {
 }
 (function() {
   var methods = [
-    'each', 'keys', 'values', 'pairs', 'invert',
-    'functions', 'pick', 'omit', 'defaults', 'map'
+    "each", "keys", "values", "pairs", "invert",
+    "functions", "pick", "omit", "defaults", "map"
   ];
 
   _.each(methods, function(method) {
@@ -30656,16 +30656,6 @@ FakeServer = {
     if (!request) return;
     var verb = request.method.toLowerCase();
     var url = this.parseUrl(request.url);
-    if (this.interceptedResponse) {
-      var ir = this.interceptedResponse;
-      if (isFunction(ir.payload)) {
-        request.respond(ir.status, ir.headers, JSON.stringify(ir.payload()));
-      } else {
-        request.respond(ir.status, ir.headers, JSON.stringify(ir.payload));
-      }
-      this.interceptedResponse = undefined;
-      return;
-    };
 
     if (this.hasRoute(verb, url)) {
       request.respond(200, this.JSONHeaders, JSON.stringify(this.responsePayload(verb, url)));
@@ -30675,14 +30665,9 @@ FakeServer = {
   },
 
   hasRoute: function(verb, url) {
-    var hasRoute = false;
-    this.routeMatchers[verb].each(function(matcher, key) {
-      if (matcher.test(url.path)) {
-        hasRoute = true;
-        return false;
-      }
+    return _(this.routeMatchers[verb]).any(function(matcher, key) {
+      return matcher.test(url.path);
     });
-    return !!hasRoute;
   },
 
   responsePayload: function(verb, url) {
@@ -30696,21 +30681,24 @@ FakeServer = {
       }
     });
 
-    if (this.interceptPayload) {
-      routePayload = this.interceptPayload;
-      this.interceptPayload = undefined;
-    }
+    return this.getPayload(url, routePayload, pattern);
+  },
 
+  getPayload: function(url, routePayload, pattern) {
     if (isFunction(routePayload)) {
       var args = url.path.match(pattern).rest();
-      args = args.map(function(arg) {
-        return /[0-9]+/.test(arg) ? arg.toNumber() : arg;
-      });
+      args = this.parseDynamicSegments(args);
       args.push(url.params);
       return routePayload.apply(null, args);
     } else {
       return routePayload;
     }
+  },
+
+  parseDynamicSegments: function(segments) {
+    return segments.map(function(segment) {
+      return /[0-9]+/.test(segment) ? segment.toNumber() : segment;
+    });
   },
 
   parseUrl: function(url) {
@@ -30734,15 +30722,7 @@ FakeServer = {
       params[pair.first()] = pair.last();
     }, {});
     return params;
-  },
-
-  interceptResponse: function(interceptPayload) {
-    this.interceptedResponse = ({
-      payload: "",
-      status: 200,
-      headers: this.JSONHeaders
-    }).mixin(interceptPayload);
-  },
+  }
 };
 
 FakeServer.initialize();
@@ -30765,7 +30745,7 @@ FakeServer.initialize();
       if (generatedMonth > thisMonth) month = ("" + thisMonth).replace(/^(\d{1})$/, "0$1");
       if (generatedDay > today) day = ("" + today).replace(/^(\d{1})$/, "0$1");
     }
-    var dateTime = [[year, month, day].join("-"), [hour, minute, seconds].join(":")].join(" ")
+    var dateTime = [[year, month, day].join("-"), [hour, minute, seconds].join(":")].join(" ");
     return dateTime;
   }
 
@@ -30781,7 +30761,7 @@ FakeServer.initialize();
             id: id,
             name: Faker.Company.bs(),
             status: ["awarded", "in queue", "reviewed"].sample(),
-            description: Faker.Lorem.paragraph(),
+            description: Faker.Lorem.paragraph().capitalize() + ".",
             issuerUrl: "http://example.com",
             earnerDescription: Faker.Lorem.paragraph(),
             consumerDescription: Faker.Lorem.paragraph(),
@@ -30796,9 +30776,23 @@ FakeServer.initialize();
             isNew: [true, false].sample(),
             imageUrl: location.origin + "/images/default-badge.png",
             badgeJSONUrl: location.origin + "/user/1/badges/" + id,
-            evidenceUrl: location.origin + "/user/1/badges/" + id,
+            evidenceUrl: "http://example.com",
             issuedOn: fakeDate(),
-            expires: fakeDate()
+            expires: fakeDate(),
+            evidence: {
+              text: Faker.Lorem.paragraph().capitalize() + ".",
+              media: _.times(_.random(1, 3), function() {
+                var type = ["youtube", "image"].sample();
+                var evidenceMap = {
+                  youtube: ["//www.youtube.com/embed/dQw4w9WgXcQ", "//www.youtube.com/embed/ScMzIvxBSi4"].sample(),
+                  image: "//placehold.it/325x206"
+                };
+                return {
+                  type: type,
+                  url: evidenceMap[type]
+                };
+              })
+            }
           };
         })
       }
@@ -30821,6 +30815,7 @@ FakeServer.initialize();
     });
     var user = FakeAPI.users.findWhere({ id: id });
     var badges = _.size(searchParams) ? user.badges.where(searchParams) : user.badges;
+
     if (date) {
       badges = badges.map(function(badge) {
         var issuedOn = moment(badge.issuedOn);
@@ -30837,6 +30832,8 @@ FakeServer.initialize();
   FakeServer.route("get", "/user/:id/badges/:badgeId", function(id, badgeId) {
     return FakeAPI.users.findWhere({ id: id }).badges.findWhere({ id: badgeId });
   });
+
+  FakeServer.route("get", "/foo", { foo: "bar" });
 })(this);
 
 var App = App || {};
@@ -30849,17 +30846,15 @@ App.Dispatcher = _.clone(Backbone.Events);
 (function() {
   var Router = Backbone.Router.extend({
     routes: {
-      "": "index",
+      "badges": "index",
       "badge/:id": "showBadge"
     },
 
     index: function() {
-      console.log("index");
       App.Dispatcher.trigger("index");
     },
 
     showBadge: function(id) {
-      console.log("showBadge");
       App.Dispatcher.trigger("showBadge", id.toNumber());
     }
   });
@@ -30879,27 +30874,15 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   if (stack1 = helpers.statusClass) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
   else { stack1 = (depth0 && depth0.statusClass); stack1 = typeof stack1 === functionType ? stack1.call(depth0, {hash:{},data:data}) : stack1; }
   buffer += escapeExpression(stack1)
-    + "\">\n  <span class=\"ribbon\">";
-  if (stack1 = helpers.ribbonText) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
-  else { stack1 = (depth0 && depth0.ribbonText); stack1 = typeof stack1 === functionType ? stack1.call(depth0, {hash:{},data:data}) : stack1; }
-  buffer += escapeExpression(stack1)
-    + "</span>\n  <img src=\"";
-  if (stack1 = helpers.imageUrl) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
-  else { stack1 = (depth0 && depth0.imageUrl); stack1 = typeof stack1 === functionType ? stack1.call(depth0, {hash:{},data:data}) : stack1; }
-  buffer += escapeExpression(stack1)
-    + "\" />\n  <p class=\"description\">\n    ";
-  if (stack1 = helpers.description) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
-  else { stack1 = (depth0 && depth0.description); stack1 = typeof stack1 === functionType ? stack1.call(depth0, {hash:{},data:data}) : stack1; }
-  buffer += escapeExpression(stack1)
-    + "\n    ";
-  if (stack1 = helpers.issuedOn) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
-  else { stack1 = (depth0 && depth0.issuedOn); stack1 = typeof stack1 === functionType ? stack1.call(depth0, {hash:{},data:data}) : stack1; }
-  buffer += escapeExpression(stack1)
-    + "\n  </p>\n  <div class=\"actions\">\n    <i class=\"fa fa-trash-o\"></i>\n    <a href=\"#/badge/";
+    + "\">\n  <a href=\"#/badge/";
   if (stack1 = helpers.id) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
   else { stack1 = (depth0 && depth0.id); stack1 = typeof stack1 === functionType ? stack1.call(depth0, {hash:{},data:data}) : stack1; }
   buffer += escapeExpression(stack1)
-    + "\" class=\"button\">Details</a>\n  </div>\n</div>\n";
+    + "\" style=\"background-image: url(";
+  if (stack1 = helpers.imageUrl) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
+  else { stack1 = (depth0 && depth0.imageUrl); stack1 = typeof stack1 === functionType ? stack1.call(depth0, {hash:{},data:data}) : stack1; }
+  buffer += escapeExpression(stack1)
+    + ");\"></a>\n</div>\n";
   return buffer;
   });;
 this["App"] = this["App"] || {};
@@ -30907,22 +30890,58 @@ this["App"]["Templates"] = this["App"]["Templates"] || {};
 this["App"]["Templates"]["badge_detail"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
   this.compilerInfo = [4,'>= 1.0.0'];
 helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
-  var buffer = "", stack1, functionType="function", escapeExpression=this.escapeExpression;
+  var buffer = "", stack1, stack2, functionType="function", escapeExpression=this.escapeExpression, self=this;
 
+function program1(depth0,data) {
+  
+  var buffer = "", stack1;
+  buffer += "\n    <div class=\"evidence\">\n      ";
+  stack1 = (typeof depth0 === functionType ? depth0.apply(depth0) : depth0);
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += "\n    </div>\n  ";
+  return buffer;
+  }
 
-  buffer += "<div class=\"badge-image\">\n  <span class=\"ribbon\">";
-  if (stack1 = helpers.ribbonText) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
-  else { stack1 = (depth0 && depth0.ribbonText); stack1 = typeof stack1 === functionType ? stack1.call(depth0, {hash:{},data:data}) : stack1; }
-  buffer += escapeExpression(stack1)
-    + "</span>\n  <img src=\"";
+  buffer += "<div class=\"badge-info\">\n  <div class=\"badge-image\">\n    <img src=\"";
   if (stack1 = helpers.imageUrl) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
   else { stack1 = (depth0 && depth0.imageUrl); stack1 = typeof stack1 === functionType ? stack1.call(depth0, {hash:{},data:data}) : stack1; }
   buffer += escapeExpression(stack1)
-    + "\" />\n</div>\n<div class=\"badge-details\">\n  <h2>";
+    + "\" />\n  </div>\n\n  <div class=\"badge-details\">\n    <h2 class=\"badge-name\">";
   if (stack1 = helpers.name) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
   else { stack1 = (depth0 && depth0.name); stack1 = typeof stack1 === functionType ? stack1.call(depth0, {hash:{},data:data}) : stack1; }
   buffer += escapeExpression(stack1)
-    + "</h2>\n</div>\n";
+    + "</h2>\n    <p class=\"columns\">\n      <strong>Issued by: </strong>\n      <span><a href=\"";
+  if (stack1 = helpers.issuerUrl) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
+  else { stack1 = (depth0 && depth0.issuerUrl); stack1 = typeof stack1 === functionType ? stack1.call(depth0, {hash:{},data:data}) : stack1; }
+  buffer += escapeExpression(stack1)
+    + "\" target=\"_blank\">";
+  if (stack1 = helpers.issuerUrl) { stack1 = stack1.call(depth0, {hash:{},data:data}); }
+  else { stack1 = (depth0 && depth0.issuerUrl); stack1 = typeof stack1 === functionType ? stack1.call(depth0, {hash:{},data:data}) : stack1; }
+  buffer += escapeExpression(stack1)
+    + "</a></span>\n    </p>\n    <p class=\"columns\">\n      <strong>Issued to: </strong>\n      <span>"
+    + escapeExpression(((stack1 = ((stack1 = (depth0 && depth0.user)),stack1 == null || stack1 === false ? stack1 : stack1.user)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + "</span>\n    </p>\n    <p class=\"columns\">\n      <strong>Date Issued: </strong>\n      <span>";
+  if (stack2 = helpers.issuedOn) { stack2 = stack2.call(depth0, {hash:{},data:data}); }
+  else { stack2 = (depth0 && depth0.issuedOn); stack2 = typeof stack2 === functionType ? stack2.call(depth0, {hash:{},data:data}) : stack2; }
+  buffer += escapeExpression(stack2)
+    + "</span>\n    </p>\n    <div class=\"columns\">\n      <strong>Description</strong>\n      <p>";
+  if (stack2 = helpers.description) { stack2 = stack2.call(depth0, {hash:{},data:data}); }
+  else { stack2 = (depth0 && depth0.description); stack2 = typeof stack2 === functionType ? stack2.call(depth0, {hash:{},data:data}) : stack2; }
+  buffer += escapeExpression(stack2)
+    + "</p>\n    </div>\n    <p class=\"columns\">\n      <strong>Criteria: </strong>\n      <span><a href=\"";
+  if (stack2 = helpers.evidenceUrl) { stack2 = stack2.call(depth0, {hash:{},data:data}); }
+  else { stack2 = (depth0 && depth0.evidenceUrl); stack2 = typeof stack2 === functionType ? stack2.call(depth0, {hash:{},data:data}) : stack2; }
+  buffer += escapeExpression(stack2)
+    + "\" target=\"_blank\">";
+  if (stack2 = helpers.evidenceUrl) { stack2 = stack2.call(depth0, {hash:{},data:data}); }
+  else { stack2 = (depth0 && depth0.evidenceUrl); stack2 = typeof stack2 === functionType ? stack2.call(depth0, {hash:{},data:data}) : stack2; }
+  buffer += escapeExpression(stack2)
+    + "</a></span>\n    </p>\n  </div>\n</div>\n\n<div class=\"badge-evidence\">\n  ";
+  stack2 = helpers.each.call(depth0, ((stack1 = (depth0 && depth0.evidence)),stack1 == null || stack1 === false ? stack1 : stack1.media), {hash:{},inverse:self.noop,fn:self.program(1, program1, data),data:data});
+  if(stack2 || stack2 === 0) { buffer += stack2; }
+  buffer += "\n  <p>\n    "
+    + escapeExpression(((stack1 = ((stack1 = (depth0 && depth0.evidence)),stack1 == null || stack1 === false ? stack1 : stack1.text)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + "\n  </p>\n</div>\n";
   return buffer;
   });;
 this["App"] = this["App"] || {};
@@ -31044,6 +31063,7 @@ App.Models.BaseModel = Backbone.Model.extend({
 App.Collections.BaseCollection = Backbone.Collection.extend();
 
 App.Models.Badge = App.Models.BaseModel.extend({
+  dateFormat: "MMMM D, YYYY",
   urlRoot: function() {
     return "/user/" + this.get("earnerId") + "/badges/" + this.id;
   },
@@ -31057,9 +31077,9 @@ App.Models.Badge = App.Models.BaseModel.extend({
 
   toJSON: function() {
     var attributes = _.clone(this.attributes);
-    if (attributes.createdOn) attributes.createdOn = attributes.createdOn.format("M/D/YY");
-    if (attributes.issuedOn) attributes.issuedOn = attributes.issuedOn.format("M/D/YY");
-    if (attributes.expires) attributes.expires = attributes.expires.format("M/D/YY");
+    if (attributes.createdOn) attributes.createdOn = attributes.createdOn.format(this.dateFormat);
+    if (attributes.issuedOn) attributes.issuedOn = attributes.issuedOn.format(this.dateFormat);
+    if (attributes.expires) attributes.expires = attributes.expires.format(this.dateFormat);
     return attributes;
   }
 },{
@@ -31301,7 +31321,12 @@ App.Views.Badge = App.Views.BaseView.extend({
   template: App.Templates.badge,
   className: "badge",
   tagName: "li",
-  descriptionLength: 50,
+
+  initialize: function(options) {
+    options = options || {};
+    App.Views.BaseView.prototype.initialize.apply(this, arguments);
+    this.user = options.user;
+  },
 
   render: function() {
     return this.$el.html(this.template(this.badgeJSON()));
@@ -31309,18 +31334,22 @@ App.Views.Badge = App.Views.BaseView.extend({
 
   badgeJSON: function() {
     var json = this.model.toJSON();
-    json.description = json.description.truncate(this.descriptionLength);
-    json.statusClass = this.statusClass();
-    json.ribbonText = this.ribbonText();
+    if (json.evidence) json.evidence = this.presentEvidence(json.evidence);
+    if (this.user) json.user = this.user.toJSON();
     return json;
   },
 
-  statusClass: function() {
-    return this.model.get("isFavorite") ? "favorite" : this.model.get("status").hyphenate();
-  },
-
-  ribbonText: function() {
-    return this.model.get("isFavorite") ? "Favorite" : this.model.get("status").titleize();
+  presentEvidence: function(evidence) {
+    return {
+      text: evidence.text,
+      media: evidence.media.map(function(media) {
+        if (media.type === "youtube") {
+          return '<iframe width="325" height="206" src="' + media.url + '" frameborder="0" allowfullscreen></iframe>';
+        } else {
+          return '<img width="325" height="206" src="' + media.url + '" />';
+        }
+      })
+    };
   }
 });
 
@@ -31441,13 +31470,16 @@ App.Views.BadgeFilter = App.Views.BaseView.extend({
     this.user = new App.Models.User(userAttributes);
     this.badges = this.user.get("badges");
     this.badgesView = new App.Views.Badges({ collection: this.badges });
-    this.badgeDetailView = new App.Views.BadgeDetail;
-    this.createBadgeFilterView();
+    this.badgeDetailView = new App.Views.BadgeDetail({
+      user: this.user
+    });
     this.registerIndexEvents();
     this.fetchBadges();
   },
 
   cacheIndexElements: function() {
+    this.badgesContainer = $("#badges-container");
+    this.badgeContainer = $("#badge-container");
     this.badgeIndex = $("#badge-index");
     this.badgeShow = $("#badge-show");
   },
@@ -31505,21 +31537,23 @@ App.Views.BadgeFilter = App.Views.BaseView.extend({
       onAfterFetch: this.badgesView.toggleLoading
     });
     this.renderBadgeFilter();
+    this.badgeFilter.cacheElements();
+    this.badgeFilter.initializeDatepicker();
   },
 
   renderBadges: function() {
-    this.badgeIndex.append(this.badgesView.render());
+    this.badgesContainer.append(this.badgesView.render());
   },
 
   renderBadgePagination: function() {
-    this.badgeIndex.append(this.badgePaginator.render());
+    this.badgesContainer.append(this.badgePaginator.render());
   },
 
   renderBadgeFilter: function() {
-    this.badgeIndex.append(this.badgeFilter.render());
+    this.badgesContainer.append(this.badgeFilter.render());
   },
 
   renderBadgeDetail: function() {
-    this.badgeShow.append(this.badgeDetailView.render());
+    this.badgeContainer.append(this.badgeDetailView.render());
   }
 }).initialize();

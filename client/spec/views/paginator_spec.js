@@ -1,5 +1,3 @@
-FakeServer.responseTime = 1;
-
 describe("App.Views.Paginator", function() {
   var subject;
   var badgesAttributes;

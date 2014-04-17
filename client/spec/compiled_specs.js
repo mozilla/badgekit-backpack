@@ -313,81 +313,21 @@ describe("FakeServer", function() {
         expect(request.respond).toHaveBeenCalledWith(404, subject.NotFoundHeaders, "Page Not Found");
       });
     });
-
-    describe("when an interceptPayload is set", function() {
-      var ir;
-      beforeEach(function() {
-        subject.requests.length = 0;
-        subject.requests.push({
-          respond: jasmine.createSpy(),
-          url: "/not-found",
-          method: "GET"
-        });
-        request = subject.requests.last();
-        ir = {
-          payload: { test: "payload" },
-          headers: "test headers",
-          status: 500
-        };
-        subject.interceptedResponse = ir;
-        subject.respond(0);
-      });
-
-      it("responds with the interceptedResponse", function() {
-        expect(request.respond).toHaveBeenCalledWith(ir.status, ir.headers, JSON.stringify(ir.payload));
-      });
-
-      it("clears the intercepted payload", function() {
-        expect(subject.interceptedResponse).toBeUndefined();
-      });
-    });
-  });
-
-  describe("interceptResponse", function() {
-    var interceptPayload;
-    beforeEach(function() {
-      interceptPayload = {
-        payload: { test: "response" },
-        status: 500,
-        headers: { "Content-Type": "intercepted" }
-      };
-      subject.interceptResponse(interceptPayload);
-    });
-
-    it("sets the interceptPayload", function() {
-      expect(subject.interceptedResponse).toEqual(interceptPayload);
-    });
-
-    describe("defaults", function() {
-      beforeEach(function() {
-        interceptPayload = {};
-        subject.interceptResponse(interceptPayload);
-      });
-
-      it("sets a status of 200 by default", function() {
-        expect(subject.interceptedResponse.status).toEqual(200);
-      });
-
-      it("sets the json headers by default", function() {
-        expect(subject.interceptedResponse.headers).toEqual(subject.JSONHeaders);
-      });
-
-      it("sets an empty payload by default", function() {
-        expect(subject.interceptedResponse.payload).toEqual("");
-      });
-    });
   });
 });
-
-  FakeServer.responseTime = 1;
 
 describe("App.Controllers.Dashboard", function() {
   var subject;
   var userAttributes;
   var $badgeIndex;
+  var $badgesContainer;
+  var $badgeContainer;
+  var $badgeShow;
   beforeEach(function() {
     userAttributes = _.clone(FakeAPI.users.first());
     $badgeIndex = affix("#badge-index");
+    $badgesContainer = affix("#badges-container");
+    $badgeContainer = affix("#badge-container");
     $badgeShow = affix("#badge-show");
     subject = App.Controllers.Dashboard;
   });
@@ -439,11 +379,6 @@ describe("App.Controllers.Dashboard", function() {
         expect(subject.badgeDetailView).toBeTypeof(App.Views.BadgeDetail);
       });
 
-      it("creates a badge filter view", function() {
-        expect(subject.badgeFilter).toBeTypeof(App.Views.BadgeFilter);
-        expect(subject.badgeFilter.collection).toEqual(subject.badges);
-      });
-
       it("registers the index events", function() {
         expect(subject.registerIndexEvents).toHaveBeenCalled();
       });
@@ -456,6 +391,14 @@ describe("App.Controllers.Dashboard", function() {
 
       it("has a badgeIndex reference", function() {
         expect(subject.badgeIndex).toBeJqueryWrapped("#badge-index");
+      });
+
+      it("has a badgesContainer reference", function() {
+        expect(subject.badgesContainer).toBeJqueryWrapped("#badges-container");
+      });
+
+      it("has a badgeContainer reference", function() {
+        expect(subject.badgeContainer).toBeJqueryWrapped("#badge-container");
       });
 
       it("has a badgeShow reference", function() {
@@ -539,7 +482,7 @@ describe("App.Controllers.Dashboard", function() {
       });
 
       it("renders the detail view", function() {
-        expect(subject.badgeShow.find("#badge-detail").length).toBeGreaterThan(0);
+        expect(subject.badgeContainer.find("#badge-detail").length).toBeGreaterThan(0);
       });
     });
 
@@ -595,47 +538,47 @@ describe("App.Controllers.Dashboard", function() {
       });
 
       it("appends the badges view to the badge-index element", function() {
-        expect($badgeIndex.children().length).toBeGreaterThan(0);
-        expect($badgeIndex.find("#my-badges").length).toBeGreaterThan(0);
+        expect($badgesContainer.children().length).toBeGreaterThan(0);
+        expect($badgesContainer.find("#my-badges").length).toBeGreaterThan(0);
       });
     });
 
     describe("renderBadgeDetail", function() {
       beforeEach(function() {
-        subject.badgeShow = $badgeShow;
+        subject.badgeContainer = $badgeContainer;
         subject.badgeDetailView.model = new App.Models.Badge(_.clone(FakeAPI.users.first().badges.first()));
         subject.renderBadgeDetail();
       });
 
       it("renders the badge detail into the badgeIndex", function() {
-        expect($badgeShow.children().length).toBeGreaterThan(0);
-        expect($badgeShow.find("#badge-detail").length).toBeGreaterThan(0);
+        expect($badgeContainer.children().length).toBeGreaterThan(0);
+        expect($badgeContainer.find("#badge-detail").length).toBeGreaterThan(0);
       });
     });
 
     describe("renderBadgePagination", function() {
       beforeEach(function() {
-        subject.badgeIndex = $badgeIndex;
+        subject.badgesContainer = $badgesContainer;
         subject.badgePaginator.collection = new App.Collections.Badges(_.clone(userAttributes.badges));
         subject.renderBadgePagination();
       });
 
-      it("renders the badge pagiantion into the badgeIndex", function() {
-        expect($badgeIndex.children().length).toBeGreaterThan(0);
-        expect($badgeIndex.find("#badges-pagination").length).toBeGreaterThan(0);
+      it("renders the badge pagiantion into the badgesContainer", function() {
+        expect($badgesContainer.children().length).toBeGreaterThan(0);
+        expect($badgesContainer.find("#badges-pagination").length).toBeGreaterThan(0);
       });
     });
 
     describe("renderBadgeFilter", function() {
       beforeEach(function() {
-        subject.badgeIndex = $badgeIndex;
+        subject.badgesContainer = $badgesContainer;
         subject.badgeFilter.collection = new App.Collections.Badges(_.clone(userAttributes.badges));
         subject.renderBadgeFilter();
       });
 
-      it("renders the badge pagiantion into the badgeIndex", function() {
-        expect($badgeIndex.children().length).toBeGreaterThan(0);
-        expect($badgeIndex.find("#badge-filter").length).toBeGreaterThan(0);
+      it("renders the badge pagiantion into the badgesContainer", function() {
+        expect($badgesContainer.children().length).toBeGreaterThan(0);
+        expect($badgesContainer.find("#badge-filter").length).toBeGreaterThan(0);
       });
     });
   });
@@ -836,10 +779,6 @@ describe("App.Views.BadgeDetail", function() {
     });
   });
 
-  it("has a template", function() {
-    expect(subject.template).toBeDefined();
-  });
-
   it("has an id", function() {
     expect(subject.id).toEqual("badge-detail");
   });
@@ -848,6 +787,10 @@ describe("App.Views.BadgeDetail", function() {
     expect(subject.tagName).toEqual("div");
   });
 
+  it("has a template", function() {
+    expect(subject.template).toBeDefined();
+    expect(subject.template).toEqual(App.Templates.badge_detail);
+  });
 });
 
 describe("App.Views.BadgeFilter", function() {
@@ -1084,10 +1027,6 @@ describe("App.Views.Badge", function() {
     expect(subject.tagName).toEqual("li");
   });
 
-  it("has a description length", function() {
-    expect(subject.descriptionLength).toBeNumber();
-  });
-
   describe("render", function() {
     beforeEach(function() {
       badgeJSON = subject.badgeJSON();
@@ -1095,10 +1034,7 @@ describe("App.Views.Badge", function() {
     });
 
     it("renders the model data in the template", function() {
-      expect(subject.$el.find(".inner")).toHaveClass(badgeJSON.statusClass);
-      expect(subject.$el.find(".description").text()).toMatch(badgeJSON.description);
       expect(subject.$el.find("img")).toHaveAttribute("src", badgeJSON.imageUrl);
-      expect(subject.$el.find(".ribbon")).toHaveText(badgeJSON.ribbonText);
     });
   });
 
@@ -1109,37 +1045,8 @@ describe("App.Views.Badge", function() {
 
     it("returns an object of the model attributes", function() {
       expect(badgeJSON).toHaveKey("name", subject.model.get("name"));
-      expect(badgeJSON).toHaveKey("status", subject.model.get("status"));
       expect(badgeJSON).toHaveKey("imageUrl", subject.model.get("imageUrl"));
-      expect(badgeJSON).toHaveKey("description", subject.model.get("description").truncate(subject.descriptionLength));
-      expect(badgeJSON).toHaveKey("statusClass", subject.statusClass());
-      expect(badgeJSON).toHaveKey("ribbonText", subject.ribbonText());
-    });
-  });
-
-  describe("statusClass", function() {
-    it("returns a lower-cased, hyphenated version of the model's status", function() {
-      subject.model.set("status", "Some Status");
-      subject.model.set("isFavorite", false);
-      expect(subject.statusClass()).toEqual("some-status");
-    });
-
-    it("returns favorite if the model is a favorite", function() {
-      subject.model.set("isFavorite", true);
-      expect(subject.statusClass()).toEqual("favorite");
-    });
-  });
-
-  describe("ribbonText", function() {
-    it("returns a title case version of the model's status", function() {
-      subject.model.set("status", "some status");
-      subject.model.set("isFavorite", false);
-      expect(subject.ribbonText()).toEqual("Some Status");
-    });
-
-    it("returns favorite if the model is a favorite", function() {
-      subject.model.set("isFavorite", true);
-      expect(subject.ribbonText()).toEqual("Favorite");
+      expect(badgeJSON).toHaveKey("description", subject.model.get("description"));
     });
   });
 });
@@ -1470,8 +1377,6 @@ describe("App.Views.CollectionView", function() {
   });
 
 });
-
-FakeServer.responseTime = 1;
 
 describe("App.Views.Paginator", function() {
   var subject;

@@ -51,16 +51,6 @@ FakeServer = {
     if (!request) return;
     var verb = request.method.toLowerCase();
     var url = this.parseUrl(request.url);
-    if (this.interceptedResponse) {
-      var ir = this.interceptedResponse;
-      if (isFunction(ir.payload)) {
-        request.respond(ir.status, ir.headers, JSON.stringify(ir.payload()));
-      } else {
-        request.respond(ir.status, ir.headers, JSON.stringify(ir.payload));
-      }
-      this.interceptedResponse = undefined;
-      return;
-    };
 
     if (this.hasRoute(verb, url)) {
       request.respond(200, this.JSONHeaders, JSON.stringify(this.responsePayload(verb, url)));
@@ -70,14 +60,9 @@ FakeServer = {
   },
 
   hasRoute: function(verb, url) {
-    var hasRoute = false;
-    this.routeMatchers[verb].each(function(matcher, key) {
-      if (matcher.test(url.path)) {
-        hasRoute = true;
-        return false;
-      }
+    return _(this.routeMatchers[verb]).any(function(matcher, key) {
+      return matcher.test(url.path);
     });
-    return !!hasRoute;
   },
 
   responsePayload: function(verb, url) {
@@ -91,21 +76,24 @@ FakeServer = {
       }
     });
 
-    if (this.interceptPayload) {
-      routePayload = this.interceptPayload;
-      this.interceptPayload = undefined;
-    }
+    return this.getPayload(url, routePayload, pattern);
+  },
 
+  getPayload: function(url, routePayload, pattern) {
     if (isFunction(routePayload)) {
       var args = url.path.match(pattern).rest();
-      args = args.map(function(arg) {
-        return /[0-9]+/.test(arg) ? arg.toNumber() : arg;
-      });
+      args = this.parseDynamicSegments(args);
       args.push(url.params);
       return routePayload.apply(null, args);
     } else {
       return routePayload;
     }
+  },
+
+  parseDynamicSegments: function(segments) {
+    return segments.map(function(segment) {
+      return /[0-9]+/.test(segment) ? segment.toNumber() : segment;
+    });
   },
 
   parseUrl: function(url) {
@@ -129,15 +117,7 @@ FakeServer = {
       params[pair.first()] = pair.last();
     }, {});
     return params;
-  },
-
-  interceptResponse: function(interceptPayload) {
-    this.interceptedResponse = ({
-      payload: "",
-      status: 200,
-      headers: this.JSONHeaders
-    }).mixin(interceptPayload);
-  },
+  }
 };
 
 FakeServer.initialize();

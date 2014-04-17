@@ -2,7 +2,12 @@ App.Views.Badge = App.Views.BaseView.extend({
   template: App.Templates.badge,
   className: "badge",
   tagName: "li",
-  descriptionLength: 50,
+
+  initialize: function(options) {
+    options = options || {};
+    App.Views.BaseView.prototype.initialize.apply(this, arguments);
+    this.user = options.user;
+  },
 
   render: function() {
     return this.$el.html(this.template(this.badgeJSON()));
@@ -10,17 +15,21 @@ App.Views.Badge = App.Views.BaseView.extend({
 
   badgeJSON: function() {
     var json = this.model.toJSON();
-    json.description = json.description.truncate(this.descriptionLength);
-    json.statusClass = this.statusClass();
-    json.ribbonText = this.ribbonText();
+    if (json.evidence) json.evidence = this.presentEvidence(json.evidence);
+    if (this.user) json.user = this.user.toJSON();
     return json;
   },
 
-  statusClass: function() {
-    return this.model.get("isFavorite") ? "favorite" : this.model.get("status").hyphenate();
-  },
-
-  ribbonText: function() {
-    return this.model.get("isFavorite") ? "Favorite" : this.model.get("status").titleize();
+  presentEvidence: function(evidence) {
+    return {
+      text: evidence.text,
+      media: evidence.media.map(function(media) {
+        if (media.type === "youtube") {
+          return '<iframe width="325" height="206" src="' + media.url + '" frameborder="0" allowfullscreen></iframe>';
+        } else {
+          return '<img width="325" height="206" src="' + media.url + '" />';
+        }
+      })
+    };
   }
 });

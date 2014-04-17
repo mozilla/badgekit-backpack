@@ -10,10 +10,6 @@ describe("App.Views.BadgeDetail", function() {
     });
   });
 
-  it("has a template", function() {
-    expect(subject.template).toBeDefined();
-  });
-
   it("has an id", function() {
     expect(subject.id).toEqual("badge-detail");
   });
@@ -22,4 +18,8 @@ describe("App.Views.BadgeDetail", function() {
     expect(subject.tagName).toEqual("div");
   });
 
+  it("has a template", function() {
+    expect(subject.template).toBeDefined();
+    expect(subject.template).toEqual(App.Templates.badge_detail);
+  });
 });

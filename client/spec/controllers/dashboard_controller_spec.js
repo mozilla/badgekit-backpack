@@ -1,12 +1,15 @@
-  FakeServer.responseTime = 1;
-
 describe("App.Controllers.Dashboard", function() {
   var subject;
   var userAttributes;
   var $badgeIndex;
+  var $badgesContainer;
+  var $badgeContainer;
+  var $badgeShow;
   beforeEach(function() {
     userAttributes = _.clone(FakeAPI.users.first());
     $badgeIndex = affix("#badge-index");
+    $badgesContainer = affix("#badges-container");
+    $badgeContainer = affix("#badge-container");
     $badgeShow = affix("#badge-show");
     subject = App.Controllers.Dashboard;
   });
@@ -58,11 +61,6 @@ describe("App.Controllers.Dashboard", function() {
         expect(subject.badgeDetailView).toBeTypeof(App.Views.BadgeDetail);
       });
 
-      it("creates a badge filter view", function() {
-        expect(subject.badgeFilter).toBeTypeof(App.Views.BadgeFilter);
-        expect(subject.badgeFilter.collection).toEqual(subject.badges);
-      });
-
       it("registers the index events", function() {
         expect(subject.registerIndexEvents).toHaveBeenCalled();
       });
@@ -75,6 +73,14 @@ describe("App.Controllers.Dashboard", function() {
 
       it("has a badgeIndex reference", function() {
         expect(subject.badgeIndex).toBeJqueryWrapped("#badge-index");
+      });
+
+      it("has a badgesContainer reference", function() {
+        expect(subject.badgesContainer).toBeJqueryWrapped("#badges-container");
+      });
+
+      it("has a badgeContainer reference", function() {
+        expect(subject.badgeContainer).toBeJqueryWrapped("#badge-container");
       });
 
       it("has a badgeShow reference", function() {
@@ -158,7 +164,7 @@ describe("App.Controllers.Dashboard", function() {
       });
 
       it("renders the detail view", function() {
-        expect(subject.badgeShow.find("#badge-detail").length).toBeGreaterThan(0);
+        expect(subject.badgeContainer.find("#badge-detail").length).toBeGreaterThan(0);
       });
     });
 
@@ -214,47 +220,47 @@ describe("App.Controllers.Dashboard", function() {
       });
 
       it("appends the badges view to the badge-index element", function() {
-        expect($badgeIndex.children().length).toBeGreaterThan(0);
-        expect($badgeIndex.find("#my-badges").length).toBeGreaterThan(0);
+        expect($badgesContainer.children().length).toBeGreaterThan(0);
+        expect($badgesContainer.find("#my-badges").length).toBeGreaterThan(0);
       });
     });
 
     describe("renderBadgeDetail", function() {
       beforeEach(function() {
-        subject.badgeShow = $badgeShow;
+        subject.badgeContainer = $badgeContainer;
         subject.badgeDetailView.model = new App.Models.Badge(_.clone(FakeAPI.users.first().badges.first()));
         subject.renderBadgeDetail();
       });
 
       it("renders the badge detail into the badgeIndex", function() {
-        expect($badgeShow.children().length).toBeGreaterThan(0);
-        expect($badgeShow.find("#badge-detail").length).toBeGreaterThan(0);
+        expect($badgeContainer.children().length).toBeGreaterThan(0);
+        expect($badgeContainer.find("#badge-detail").length).toBeGreaterThan(0);
       });
     });
 
     describe("renderBadgePagination", function() {
       beforeEach(function() {
-        subject.badgeIndex = $badgeIndex;
+        subject.badgesContainer = $badgesContainer;
         subject.badgePaginator.collection = new App.Collections.Badges(_.clone(userAttributes.badges));
         subject.renderBadgePagination();
       });
 
-      it("renders the badge pagiantion into the badgeIndex", function() {
-        expect($badgeIndex.children().length).toBeGreaterThan(0);
-        expect($badgeIndex.find("#badges-pagination").length).toBeGreaterThan(0);
+      it("renders the badge pagiantion into the badgesContainer", function() {
+        expect($badgesContainer.children().length).toBeGreaterThan(0);
+        expect($badgesContainer.find("#badges-pagination").length).toBeGreaterThan(0);
       });
     });
 
     describe("renderBadgeFilter", function() {
       beforeEach(function() {
-        subject.badgeIndex = $badgeIndex;
+        subject.badgesContainer = $badgesContainer;
         subject.badgeFilter.collection = new App.Collections.Badges(_.clone(userAttributes.badges));
         subject.renderBadgeFilter();
       });
 
-      it("renders the badge pagiantion into the badgeIndex", function() {
-        expect($badgeIndex.children().length).toBeGreaterThan(0);
-        expect($badgeIndex.find("#badge-filter").length).toBeGreaterThan(0);
+      it("renders the badge pagiantion into the badgesContainer", function() {
+        expect($badgesContainer.children().length).toBeGreaterThan(0);
+        expect($badgesContainer.find("#badge-filter").length).toBeGreaterThan(0);
       });
     });
   });

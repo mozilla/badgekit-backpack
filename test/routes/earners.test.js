@@ -39,6 +39,7 @@ prepare({db: true}).then(function(api) {
     }
     api.put('/users/brian@mozillafoundation.org', update)
       .then(function(res) {
+        console.dir(res)
         t.same(res.statusCode, 200)
         return api.get('/users/brian@mozillafoundation.org')
       })

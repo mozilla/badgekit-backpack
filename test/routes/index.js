@@ -51,7 +51,7 @@ function authorizationHeader(opts) {
   if (opts.body) {
     payload.body = {
       alg: 'sha256',
-      hash: sha256(opts.body),
+      hash: sha256(Buffer(opts.body)),
     }
   }
   return util.format('JWT token="%s"', jws.sign({

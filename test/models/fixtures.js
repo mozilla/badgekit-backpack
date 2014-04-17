@@ -52,6 +52,10 @@ module.exports = [
   [JSONModel, [
     { url: 'http://example.org/one',
       data: '{"sup": true}' },
+    { url: 'http://example.org/two',
+      data: '{"sup": true}' },
+    { url: 'http://example.org/three',
+      data: '{"sup": true}' },
   ]],
 
   [IssuerOrgs, [
@@ -74,7 +78,7 @@ module.exports = [
 
   [EarnerBadges, [
     { id: 1,
-      jsonUrl: 'http://example.org/one',
+      jsonUrl: 'http://example.org/two',
       earnerId: 'test-user',
       badgeClassId: 1,
       uid: 'test-badge-one',

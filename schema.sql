@@ -59,6 +59,7 @@ CREATE TABLE `issuerOrgs` (
   `email` VARCHAR(255),
   `revocationList` VARCHAR(255),
   PRIMARY KEY (`id`),
+  UNIQUE KEY (`jsonUrl`),
   FOREIGN KEY (`jsonUrl`)
     REFERENCES `json`(`url`)
     ON UPDATE CASCADE
@@ -76,6 +77,7 @@ CREATE TABLE `badgeClasses` (
   `criteriaUrl` VARCHAR(255) NOT NULL,
   `issuerJSONUrl` VARCHAR(255) NOT NULL,
   PRIMARY KEY (`id`),
+  UNIQUE KEY (`jsonUrl`),
   FOREIGN KEY (`jsonUrl`)
     REFERENCES `json`(`url`)
     ON UPDATE CASCADE,
@@ -99,6 +101,7 @@ CREATE TABLE `earnerBadges` (
   `issuedOn` TIMESTAMP,
   `expires` TIMESTAMP,
   PRIMARY KEY (`id`),
+  UNIQUE KEY (`jsonUrl`),
   FOREIGN KEY (`earnerId`)
     REFERENCES `earners`(`id`)
     ON DELETE CASCADE

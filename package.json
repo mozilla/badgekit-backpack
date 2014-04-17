@@ -11,9 +11,11 @@
     "streamsql": "~0.7.1",
     "restify": "~2.7.0",
     "newrelic": "~1.4.0",
-    "bunyan": "~0.22.3"
+    "bunyan": "~0.22.3",
+    "request": "~2.34.0"
   },
   "devDependencies": {
+    "Faker": "~0.7.0",
     "concat-stream": "~1.4.4",
     "tap": "~0.4.8"
   },

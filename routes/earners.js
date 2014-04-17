@@ -1,11 +1,17 @@
 const restify = require('restify')
 const Promise = require('bluebird')
+const request = require('request')
 const sha1 = require('../lib/hash').sha1
+const JSONModel = require('../models/json')
 const Evidence = require('../models/evidence')
 const Earners = require('../models/earners')
 const EarnerData = require('../models/earner-data')
+const IssuerOrgs = require('../models/issuer-orgs')
+const BadgeClasses = require('../models/badge-classes')
+const EarnerBadges = require('../models/earner-badges')
 
 const NotFoundError = restify.NotFoundError
+const BadRequestError = restify.BadRequestError
 const keys = Object.keys
 
 
@@ -161,6 +167,8 @@ module.exports = function earnerRoutes(server) {
       .then(function(evidenceList) {
         res.send(200, evidenceList)
       })
+      .catch(NotFoundError, next)
+      .catch(res.logInternalError('GET /users/:userId/evidence'))
   }
 
 
@@ -183,7 +191,7 @@ module.exports = function earnerRoutes(server) {
       })
 
       .catch(NotFoundError, next)
-      .catch(res.logInternalError('POST /users/:userId/evidence – Error creating new evidence for user'))
+      .catch(res.logInternalError('GET /users/:userId/evidence/:evidenceId'))
   }
 
   server.del('/users/:userId/evidence/:evidenceId', deleteEvidence)
@@ -197,7 +205,7 @@ module.exports = function earnerRoutes(server) {
         return res.send(200, {status: 'deleted'})
       })
       .catch(NotFoundError, next)
-      .catch(res.logInternalError('POST /users/:userId/evidence – Error creating new evidence for user'))
+      .catch(res.logInternalError('DEL /users/:userId/evidence/:evidenceId'))
   }
 
 
@@ -218,8 +226,226 @@ module.exports = function earnerRoutes(server) {
       })
 
       .catch(NotFoundError, next)
-      .catch(res.logInternalError('POST /users/:userId/evidence – Error creating new evidence for user'))
+      .catch(res.logInternalError('GET /evidence/:slug'))
 
   }
 
+  // Badges
+  // --------
+  server.get('/users/:userId/badges', findEarnerBadges)
+  function findEarnerBadges(req, res, next) {
+    const earnerId = req.params.userId
+    const options = {
+      relationships: true,
+      relationshipsDepth: 2,
+    }
+    Earners.getOne({id: earnerId})
+      .then(function(earner) {
+        if (!earner)
+          throw new NotFoundError('Could not find earner with id `' + earnerId + '`')
+        return EarnerBadges.get({earnerId: earnerId}, options)
+      })
+
+      .then(function(badges) {
+        return res.send(200, badges)
+      })
+
+      .catch(NotFoundError, next)
+      .catch(res.logInternalError('GET /users/:userId/badges'))
+  }
+
+  server.get('/users/:userId/badges/:badgeId', findEarnerBadge)
+  function findEarnerBadge(req, res, next) {
+    const earnerId = req.params.userId
+    const badgeId = req.params.badgeId
+    const options = {
+      relationships: true,
+      relationshipsDepth: 2,
+    }
+    Earners.getOne({id: earnerId})
+      .then(function(earner) {
+        if (!earner)
+          throw new NotFoundError('Could not find earner with id `' + earnerId + '`')
+
+        const query = {
+          id: badgeId,
+          earnerId: earnerId,
+        }
+        return EarnerBadges.getOne(query, options)
+      })
+
+      .then(function(badge) {
+        if (!badge)
+          throw new NotFoundError('Could not find badge with id `' + badgeId + '`')
+        return res.send(200, badge)
+      })
+
+      .catch(NotFoundError, next)
+      .catch(res.logInternalError('GET /users/:userId/badges'))
+  }
+
+  server.del('/users/:userId/badges/:badgeId', deleteEarnerBadge)
+  function deleteEarnerBadge(req, res, next) {
+    const earnerId = req.params.userId
+    const badgeId = req.params.badgeId
+    EarnerBadges.del({ id: badgeId, earnerId: earnerId, }, {limit: 1})
+      .then(function(result) {
+        if (!result.affectedRows)
+          throw new NotFoundError('Could not find badge for user `' + earnerId  + '` with id `' + badgeId + '`')
+        return res.send(200, {status: 'deleted'})
+      })
+      .catch(NotFoundError, next)
+      .catch(res.logInternalError('GET /users/:userId/badges'))
+  }
+
+  server.post('/users/:userId/badges', addEarnerBadge)
+  function addEarnerBadge(req, res, next) {
+    const form = req.body
+    const earnerId = req.params.userId
+    const assertionUrl = form.assertionUrl
+    Earners.getOne({id: earnerId})
+      .then(function(earner) {
+        if (!earner)
+          throw new NotFoundError('Could not find earner with id `' + earnerId + '`')
+        return getAllBadgeStructures(assertionUrl, earnerId)
+      })
+      .then(saveBadgeStructures)
+      .then(function(earnerBadge) {
+        res.header('Location', req.resolvePath('/users/' + earnerId + '/badges/' + earnerBadge.id))
+        return res.send(201, {status: 'created'})
+      })
+      .catch(BadRequestError, next)
+  }
+
+}
+
+function getAllBadgeStructures(assertionUrl, earnerId) {
+  return new Promise(function (resolve, reject) {
+    const httpGet = Promise.promisify(request.get)
+    const results = {earnerId: earnerId}
+    httpGet(assertionUrl)
+      .spread(function (res, body) {
+        var assertion
+        if (res.statusCode != 200)
+          throw new BadRequestError('Could not get assertion structure: Expected HTTP 200, got HTTP ' + res.statusCode)
+
+        try {
+          assertion = JSON.parse(body)
+        } catch (e) {
+          throw new BadRequestError('Could not get parse assertion structure as JSON')
+        }
+
+        if (!assertion.badge)
+          throw new BadRequestError('Assertion is missing `badge` field')
+
+        results.assertion = assertion
+        results.assertionUrl = assertionUrl
+        results.badgeUrl = assertion.badge
+
+        return httpGet(assertion.badge)
+      })
+
+      .spread(function (res, body) {
+        var badge
+        if (res.statusCode != 200)
+          throw new BadRequestError('Could not get badge structure: Expected HTTP 200, got HTTP ' + res.statusCode)
+
+        try {
+          badge = JSON.parse(body)
+        } catch (e) {
+          throw new BadRequestError('Could not get parse badge structure as JSON')
+        }
+
+        if (!badge.issuer)
+          throw new BadRequestError('Badge is missing `issuer` field')
+
+        results.badge = badge
+        results.issuerUrl = badge.issuer
+        return httpGet(badge.issuer)
+      })
+
+      .spread(function (res, body) {
+        var issuer
+        if (res.statusCode != 200)
+          throw new BadRequestError('Could not get issuer structure: Expected HTTP 200, got HTTP ' + res.statusCode)
+
+        try {
+          issuer = JSON.parse(body)
+        } catch (e) {
+          throw new BadRequestError('Could not get parse issuer structure as JSON')
+        }
+
+        results.issuer = issuer
+        return resolve(results)
+      })
+      .catch(reject)
+  })
+}
+
+function saveBadgeStructures(structs) {
+  const saveJSON = function (data) { return JSONModel.put(data) }
+  const getOrPut = function (model, data) {
+    const promise = model.getOne({jsonUrl: data.jsonUrl})
+      .then(function(item) {
+        if (!item)
+          return model.put(data)
+        return { insertId: item.id }
+      })
+      .then(function(result) {
+        return result.insertId
+      })
+    return promise
+  }
+  const rows = [
+    {url: structs.issuerUrl, data: JSON.stringify(structs.issuer) },
+    {url: structs.badgeUrl, data: JSON.stringify(structs.badge) },
+    {url: structs.assertionUrl, data: JSON.stringify(structs.assertion) },
+  ]
+  return Promise.all(rows.map(saveJSON))
+    .then(function(results) {
+      const issuer = structs.issuer
+      return getOrPut(IssuerOrgs, {
+        jsonUrl: structs.issuerUrl,
+        name: issuer.name,
+        url: issuer.url,
+        description: issuer.description,
+        imageUrl: issuer.image,
+        email: issuer.email,
+        revocationList: issuer.revocationList,
+      })
+    })
+    .then(function(issuerId) {
+      const badge = structs.badge
+      return getOrPut(BadgeClasses, {
+        jsonUrl: structs.badgeUrl,
+        issuerOrgId: issuerId,
+        name: badge.name,
+        description: badge.description,
+        imageUrl: badge.image,
+        criteriaUrl: badge.criteria,
+        issuerJSONUrl: badge.issuer,
+      })
+    })
+    .then(function(badgeId) {
+      const assertion = structs.assertion
+      return EarnerBadges.put({
+        jsonUrl: structs.assertionUrl,
+        earnerId: structs.earnerId,
+        badgeClassId: badgeId,
+        uid: assertion.uid,
+        imageUrl: assertion.image,
+        badgeJSONUrl: assertion.badge,
+        evidenceUrl: assertion.evidence,
+        issuedOn: assertion.issuedOn,
+        evidenceUrl: assertion.evidence,
+      }, {uniqueKey: 'jsonUrl'})
+    })
+    .then(function(dbResult) {
+      return EarnerBadges.getOne({
+        jsonUrl: structs.assertionUrl
+      }, {
+        relationships: true,
+        relationshipsDepth: 2,
+      })
+    })
 }

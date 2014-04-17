@@ -72,4 +72,12 @@ module.exports = [
       issuerJSONUrl: 'http://example.org/issuer.json' }
   ]],
 
+  [EarnerBadges, [
+    { id: 1,
+      jsonUrl: 'http://example.org/one',
+      earnerId: 'test-user',
+      badgeClassId: 1,
+      uid: 'test-badge-one',
+      badgeJSONUrl: 'http://example.org/badge.json' }
+  ]],
 ]

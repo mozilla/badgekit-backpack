@@ -7,15 +7,20 @@
   },
 
   initIndex: function(userAttributes) {
-    this.cacheIndexElements();
-    this.user = new App.Models.User(userAttributes);
-    this.badges = this.user.get("badges");
-    this.badgesView = new App.Views.Badges({ collection: this.badges });
-    this.badgeDetailView = new App.Views.BadgeDetail({
-      user: this.user
-    });
-    this.registerIndexEvents();
-    this.fetchBadges();
+    if (!this.initialized) {
+      this.cacheIndexElements();
+      this.user = new App.Models.User(userAttributes);
+      this.badges = this.user.get("badges");
+      this.badgesView = new App.Views.Badges({ collection: this.badges });
+      this.badgeDetailView = new App.Views.BadgeDetail({
+        user: this.user
+      });
+      this.registerIndexEvents();
+      this.fetchBadges();
+      this.initialized = true;
+    } else {
+      this.handleIndex();
+    }
   },
 
   cacheIndexElements: function() {
@@ -41,8 +46,9 @@
   handleBadgesFetchSuccess: function() {
     this.renderBadges();
     this.createPaginationView();
-    if (location.hash) {
-      App.Dispatcher.trigger("showBadge", location.hash.split("/").last().toNumber());
+    var url = location.hash.split("/").rest();
+    if (url.first() === "badge") {
+      App.Dispatcher.trigger("showBadge", url.last().toNumber());
     }
   },
 

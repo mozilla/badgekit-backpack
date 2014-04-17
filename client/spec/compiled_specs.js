@@ -539,7 +539,7 @@ describe("App.Controllers.Dashboard", function() {
       });
 
       it("renders the detail view", function() {
-        expect(subject.badgeIndex.find("#badge-detail").length).toBeGreaterThan(0);
+        expect(subject.badgeShow.find("#badge-detail").length).toBeGreaterThan(0);
       });
     });
 
@@ -602,14 +602,14 @@ describe("App.Controllers.Dashboard", function() {
 
     describe("renderBadgeDetail", function() {
       beforeEach(function() {
-        subject.badgeIndex = $badgeIndex;
+        subject.badgeShow = $badgeShow;
         subject.badgeDetailView.model = new App.Models.Badge(_.clone(FakeAPI.users.first().badges.first()));
         subject.renderBadgeDetail();
       });
 
       it("renders the badge detail into the badgeIndex", function() {
-        expect($badgeIndex.children().length).toBeGreaterThan(0);
-        expect($badgeIndex.find("#badge-detail").length).toBeGreaterThan(0);
+        expect($badgeShow.children().length).toBeGreaterThan(0);
+        expect($badgeShow.find("#badge-detail").length).toBeGreaterThan(0);
       });
     });
 

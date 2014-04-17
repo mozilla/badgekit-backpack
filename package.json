@@ -12,7 +12,8 @@
     "restify": "~2.7.0",
     "newrelic": "~1.4.0",
     "bunyan": "~0.22.3",
-    "request": "~2.34.0"
+    "request": "~2.34.0",
+    "jws": "~0.2.5"
   },
   "devDependencies": {
     "Faker": "~0.7.0",

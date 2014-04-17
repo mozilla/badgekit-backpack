@@ -1,10 +1,15 @@
+const jws = require('jws')
+const util = require('util')
 const urlUtil = require('url')
 const http = require('http')
+const assert = require('assert')
 const Promise = require('bluebird')
 const concat = require('concat-stream')
 const server = require('../../')
-const assert = require('assert')
+const sha256 = require('../../lib/hash').sha256
 const prepareDb = require('../models')
+
+const MASTER_SECRET = process.env.MASTER_SECRET
 
 const spawn = module.exports = function spawn(opts) {
   return new Promise(function (resolve, reject) {
@@ -37,13 +42,40 @@ APIClient.prototype.finish = function finish(t) {
   t.end()
 }
 
+function authorizationHeader(opts) {
+  const payload = {
+    key: 'master',
+    method: opts.method,
+    path: opts.path,
+  }
+  if (opts.body) {
+    payload.body = {
+      alg: 'sha256',
+      hash: sha256(opts.body),
+    }
+  }
+  return util.format('JWT token="%s"', jws.sign({
+    secret: opts.secret,
+    header: {typ: 'JWT', alg: 'HS256'},
+    payload: payload,
+  }))
+}
+
 function requestWithoutBody(method) {
   return function (urlSuffix) {
     const url = this.prefix + urlSuffix
     const result = {}
     const options = urlUtil.parse(url)
-    options.method = method.toUpperCase()
-    options.headers = { 'content-type': 'application/json' }
+    method = method.toUpperCase()
+    options.method = method
+    options.headers = {
+      'content-type': 'application/json',
+      'authorization': authorizationHeader({
+        secret: MASTER_SECRET,
+        method: method,
+        path: options.path
+      })
+    }
     return new Promise(function (resolve, reject) {
       const req = http.request(options, handleResponse(resolve, reject))
       req.end()
@@ -62,6 +94,12 @@ function requestWithBody(method) {
         'content-type': 'application/json',
         'content-length': jsonFormData.length,
         'warning': 'Contents Might Be Too Rad',
+        'authorization': authorizationHeader({
+          secret: MASTER_SECRET,
+          method: method,
+          path: options.path,
+          body: jsonFormData,
+        })
       }
       const req = http.request(options, handleResponse(resolve, reject))
       req.write(jsonFormData)

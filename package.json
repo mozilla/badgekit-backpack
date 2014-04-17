@@ -1,0 +1,33 @@
+{
+  "name": "badgekit-backpack",
+  "version": "0.0.0",
+  "description": "Badgekit Backpack",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "mysql": "~2.1.1",
+    "streamsql": "~0.6.0",
+    "xtend": "~2.2.0"
+  },
+  "devDependencies": {
+    "tap": "~0.4.8"
+  },
+  "scripts": {
+    "test": "tap test/**/*.test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/mozilla/badgekit-backpack.git"
+  },
+  "keywords": [
+    "badgekit"
+  ],
+  "author": "Mozilla Foundation",
+  "license": "MPL 2.0",
+  "bugs": {
+    "url": "https://github.com/mozilla/badgekit-backpack/issues"
+  },
+  "homepage": "https://github.com/mozilla/badgekit-backpack"
+}

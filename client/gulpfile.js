@@ -31,7 +31,6 @@ gulp.task("js", function() {
     "js/vendor/underwear.js",
     "js/vendor/moment.js",
     "js/vendor/faker.js",
-    "js/vendor/uuid.js",
     "js/lib/config.js",
     "js/lib/fake_server.js",
     "js/lib/fake_api.js",
@@ -52,11 +51,6 @@ gulp.task("js", function() {
   ])
   .pipe(concat("application.js").on('error', gutil.log))
   .pipe(gulp.dest("build"));
-
-  gulp.src([
-    "js/vendor/fake_server.js",
-    "js/vendor/fake_api.js"
-  ]).pipe(gulp.dest("build"));
 });
 
 gulp.task("templates", function(){

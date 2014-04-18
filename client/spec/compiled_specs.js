@@ -323,12 +323,14 @@ describe("App.Controllers.Dashboard", function() {
   var $badgesContainer;
   var $badgeContainer;
   var $badgeShow;
+  var $badgeSortSelect;
   beforeEach(function() {
     userAttributes = _.clone(FakeAPI.users.first());
     $badgeIndex = affix("#badge-index");
     $badgesContainer = affix("#badges-container");
     $badgeContainer = affix("#badge-container");
     $badgeShow = affix("#badge-show");
+    $badgeSortSelect = affix("#badge-sorter");
     subject = App.Controllers.Dashboard;
   });
 
@@ -351,6 +353,7 @@ describe("App.Controllers.Dashboard", function() {
         spyOn(subject, "cacheIndexElements").and.callThrough();
         spyOn(subject, "fetchBadges");
         spyOn(subject, "registerIndexEvents");
+        subject.initialized = false;
         subject.initIndex({ id: 1 });
       });
 
@@ -379,6 +382,12 @@ describe("App.Controllers.Dashboard", function() {
         expect(subject.badgeDetailView).toBeTypeof(App.Views.BadgeDetail);
       });
 
+      it("creates a badge sorter view", function() {
+        expect(subject.badgeSorter).toBeTypeof(App.Views.BadgeSorter);
+        expect(subject.badgeSorter.$el).toBeJqueryWrapped("#badge-sorter");
+        expect(subject.badgeSorter.collection).toEqual(subject.badges);
+      });
+
       it("registers the index events", function() {
         expect(subject.registerIndexEvents).toHaveBeenCalled();
       });
@@ -403,6 +412,10 @@ describe("App.Controllers.Dashboard", function() {
 
       it("has a badgeShow reference", function() {
         expect(subject.badgeShow).toBeJqueryWrapped("#badge-show");
+      });
+
+      it("has a badgeSorter reference", function() {
+        expect(subject.badgeSortSelect).toBeJqueryWrapped("#badge-sorter");
       });
     });
 
@@ -502,22 +515,6 @@ describe("App.Controllers.Dashboard", function() {
       });
     });
 
-    describe("createBadgeFilterView", function() {
-      beforeEach(function() {
-        subject.badgeFilter = undefined;
-        spyOn(subject, "renderBadgeFilter");
-        subject.createBadgeFilterView();
-      });
-
-      it("creates a badge filter view", function() {
-        expect(subject.badgeFilter).toBeTypeof(App.Views.BadgeFilter);
-      });
-
-      it("renders the badge filters", function() {
-        expect(subject.renderBadgeFilter).toHaveBeenCalled();
-      });
-    });
-
     describe("renderBadges", function() {
       beforeEach(function() {
         subject.user = new App.Models.User(userAttributes);
@@ -566,19 +563,6 @@ describe("App.Controllers.Dashboard", function() {
       it("renders the badge pagiantion into the badgesContainer", function() {
         expect($badgesContainer.children().length).toBeGreaterThan(0);
         expect($badgesContainer.find("#badges-pagination").length).toBeGreaterThan(0);
-      });
-    });
-
-    describe("renderBadgeFilter", function() {
-      beforeEach(function() {
-        subject.badgesContainer = $badgesContainer;
-        subject.badgeFilter.collection = new App.Collections.Badges(_.clone(userAttributes.badges));
-        subject.renderBadgeFilter();
-      });
-
-      it("renders the badge pagiantion into the badgesContainer", function() {
-        expect($badgesContainer.children().length).toBeGreaterThan(0);
-        expect($badgesContainer.find("#badge-filter").length).toBeGreaterThan(0);
       });
     });
   });
@@ -805,16 +789,16 @@ describe("App.Views.BadgeFilter", function() {
     });
   });
 
-  it("has a template", function() {
+  xit("has a template", function() {
     expect(subject.template).toBeDefined();
     expect(subject.template).toEqual(App.Templates.badge_filter);
   });
 
-  it("is a section tag", function() {
+  xit("is a section tag", function() {
     expect(subject.tagName).toEqual("section");
   });
 
-  it("has a badge-filter id", function() {
+  xit("has a badge-filter id", function() {
     expect(subject.id).toEqual("badge-filter");
   });
 
@@ -824,11 +808,11 @@ describe("App.Views.BadgeFilter", function() {
       subject.initialize();
     });
 
-    it("sets onBeforeFetch to a noop by default", function() {
+    xit("sets onBeforeFetch to a noop by default", function() {
       expect(subject.onBeforeFetch).toEqual($.noop);
     });
 
-    it("sets onAfterFetch to a noop by default", function() {
+    xit("sets onAfterFetch to a noop by default", function() {
       expect(subject.onAfterFetch).toEqual($.noop);
     });
 
@@ -846,11 +830,11 @@ describe("App.Views.BadgeFilter", function() {
         });
       });
 
-      it("sets the onBeforeFetch callback", function() {
+      xit("sets the onBeforeFetch callback", function() {
         expect(subject.onBeforeFetch).toEqual(onBeforeFetchSpy);
       });
 
-      it("sets the onAfterFetch callback", function() {
+      xit("sets the onAfterFetch callback", function() {
         expect(subject.onAfterFetch).toEqual(onAfterFetchSpy);
       });
     });
@@ -863,27 +847,27 @@ describe("App.Views.BadgeFilter", function() {
       subject.render();
     });
 
-    it("renders the template", function() {
+    xit("renders the template", function() {
       expect(subject.$el.children().length).toBeGreaterThan(0);
     });
 
-    it("passes the badge statuses to the template", function() {
+    xit("passes the badge statuses to the template", function() {
       App.Models.Badge.STATUSES.each(function(status) {
         expect(subject.$el.find('[name="filter-badge-status"] option').text()).toMatch(status);
       });
     });
 
-    it("passes the badge types to the template", function() {
+    xit("passes the badge types to the template", function() {
       App.Models.Badge.TYPES.each(function(type) {
         expect(subject.$el.find('[name="filter-badge-type"] option').text()).toMatch(type);
       });
     });
 
-    it("caches the elements", function() {
+    xit("caches the elements", function() {
       expect(subject.cacheElements).toHaveBeenCalled();
     });
 
-    it("initializes the datepicker", function() {
+    xit("initializes the datepicker", function() {
       expect(subject.initializeDatepicker).toHaveBeenCalled();
     });
   });
@@ -894,19 +878,19 @@ describe("App.Views.BadgeFilter", function() {
       subject.cacheElements();
     });
 
-    it("caches a reference to the status select", function() {
+    xit("caches a reference to the status select", function() {
       expect(subject.statusSelect).toBeJqueryWrapped("#filter-badge-status-select");
     });
 
-    it("caches a reference to the type select", function() {
+    xit("caches a reference to the type select", function() {
       expect(subject.typeSelect).toBeJqueryWrapped("#filter-badge-type-select");
     });
 
-    it("caches a reference to the category select", function() {
+    xit("caches a reference to the category select", function() {
       expect(subject.categorySelect).toBeJqueryWrapped("#filter-badge-category-select");
     });
 
-    it("caches a reference to the date field", function() {
+    xit("caches a reference to the date field", function() {
       expect(subject.dateField).toBeJqueryWrapped("#filter-badge-date-field");
     });
   });
@@ -918,7 +902,7 @@ describe("App.Views.BadgeFilter", function() {
       subject.initializeDatepicker();
     });
 
-    it("initializes the datepicker on the dateField", function() {
+    xit("initializes the datepicker on the dateField", function() {
       expect(subject.dateField.datepicker).toHaveBeenCalled();
     });
   });
@@ -932,7 +916,7 @@ describe("App.Views.BadgeFilter", function() {
       filters = subject.getFilters();
     });
 
-    it("returns the filter data as json", function() {
+    xit("returns the filter data as json", function() {
       expect(filters).toEqual({
         status: App.Models.Badge.STATUSES.last(),
         badgeType: App.Models.Badge.TYPES.last()
@@ -952,27 +936,27 @@ describe("App.Views.BadgeFilter", function() {
       subject.handleSearchButtonClick(eventStub);
     });
 
-    it("prevents default behavior", function() {
+    xit("prevents default behavior", function() {
       expect(eventStub.preventDefault).toHaveBeenCalled();
     });
 
-    it("sets the filters on the model", function() {
+    xit("sets the filters on the model", function() {
       expect(collection.filters).toEqual(subject.getFilters());
     });
 
-    it("calls the onBeforeFetch callback", function() {
+    xit("calls the onBeforeFetch callback", function() {
       expect(subject.onBeforeFetch).toHaveBeenCalled();
     });
 
-    it("toggles loading", function() {
+    xit("toggles loading", function() {
       expect(subject.toggleLoading).toHaveBeenCalled();
     });
 
-    it("fetches the collection", function() {
+    xit("fetches the collection", function() {
       expect(subject.collection.fetch).toHaveBeenCalled();
     });
 
-    it("handles search success when the colleciton is fetched", function() {
+    xit("handles search success when the colleciton is fetched", function() {
       expect(promiseStub.done).toHaveBeenCalledWith(subject.handleSearchSuccess);
     });
   });
@@ -985,18 +969,85 @@ describe("App.Views.BadgeFilter", function() {
       subject.handleSearchSuccess();
     });
 
-    it("calls the onAfterFetch callback", function() {
+    xit("calls the onAfterFetch callback", function() {
       expect(subject.onAfterFetch).toHaveBeenCalled();
     });
 
-    it("toggles loading", function() {
+    xit("toggles loading", function() {
       expect(subject.toggleLoading).toHaveBeenCalled();
     });
   });
 
   describe("events", function() {
-    it("registers handleSearchButtonClick to the search button click event", function() {
+    xit("registers handleSearchButtonClick to the search button click event", function() {
       expect(subject.events["click button.search"]).toEqual("handleSearchButtonClick");
+    });
+  });
+});
+
+describe("App.Views.BadgeSorter", function() {
+  var subject;
+  var badges;
+  beforeEach(function() {
+    affix("#container");
+    badges = new App.Collections.Badges(_.clone(FakeAPI.users.first().badges));
+    subject = new App.Views.BadgeSorter({
+      el: "#container",
+      collection: badges
+    });
+  });
+
+  it("has a template", function() {
+    expect(subject.template).toBeDefined();
+    expect(subject.template).toEqual(App.Templates.badge_sorter);
+  });
+
+  describe("initialize", function() {
+    beforeEach(function() {
+      spyOn(subject, "render");
+      subject.render();
+    });
+
+    it("renders the template", function() {
+      expect(subject.render).toHaveBeenCalled();
+    });
+
+    it("caches the select element", function() {
+      expect(subject.selector).toEqual(subject.$el.find("select"));
+    });
+  });
+
+  describe("render", function() {
+    beforeEach(function() {
+      subject.render();
+    });
+
+    it("renders the template", function() {
+      expect(subject.$el.children().length).toBeGreaterThan(0);
+    });
+  });
+
+  describe("events", function() {
+    it("binds handleSelectChange to the select change event", function() {
+      expect(subject.events["change select"]).toEqual("handleSelectChange");
+    });
+  });
+
+  describe("handleSelectChange", function() {
+    var sortVal;
+    beforeEach(function() {
+      spyOn(subject.collection, "fetch");
+      sortVal = "issuedOn-asc";
+      subject.$el.find("select").val(sortVal);
+      subject.handleSelectChange();
+    });
+
+    it("sets the filters on the collection", function() {
+      expect(subject.collection.filters).toHaveKey("sort", sortVal);
+    });
+
+    it("it fetches the collection", function() {
+      expect(subject.collection.fetch).toHaveBeenCalled();
     });
   });
 });

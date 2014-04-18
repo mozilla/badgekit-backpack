@@ -15,6 +15,10 @@
       this.badgeDetailView = new App.Views.BadgeDetail({
         user: this.user
       });
+      this.badgeSorter = new App.Views.BadgeSorter({
+        el: this.badgeSortSelect,
+        collection: this.badges
+      });
       this.registerIndexEvents();
       this.fetchBadges();
       this.initialized = true;
@@ -28,6 +32,7 @@
     this.badgeContainer = $("#badge-container");
     this.badgeIndex = $("#badge-index");
     this.badgeShow = $("#badge-show");
+    this.badgeSortSelect = $("#badge-sorter");
   },
 
   fetchBadges: function() {

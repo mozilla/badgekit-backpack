@@ -5,12 +5,14 @@ describe("App.Controllers.Dashboard", function() {
   var $badgesContainer;
   var $badgeContainer;
   var $badgeShow;
+  var $badgeSortSelect;
   beforeEach(function() {
     userAttributes = _.clone(FakeAPI.users.first());
     $badgeIndex = affix("#badge-index");
     $badgesContainer = affix("#badges-container");
     $badgeContainer = affix("#badge-container");
     $badgeShow = affix("#badge-show");
+    $badgeSortSelect = affix("#badge-sorter");
     subject = App.Controllers.Dashboard;
   });
 
@@ -33,6 +35,7 @@ describe("App.Controllers.Dashboard", function() {
         spyOn(subject, "cacheIndexElements").and.callThrough();
         spyOn(subject, "fetchBadges");
         spyOn(subject, "registerIndexEvents");
+        subject.initialized = false;
         subject.initIndex({ id: 1 });
       });
 
@@ -61,6 +64,12 @@ describe("App.Controllers.Dashboard", function() {
         expect(subject.badgeDetailView).toBeTypeof(App.Views.BadgeDetail);
       });
 
+      it("creates a badge sorter view", function() {
+        expect(subject.badgeSorter).toBeTypeof(App.Views.BadgeSorter);
+        expect(subject.badgeSorter.$el).toBeJqueryWrapped("#badge-sorter");
+        expect(subject.badgeSorter.collection).toEqual(subject.badges);
+      });
+
       it("registers the index events", function() {
         expect(subject.registerIndexEvents).toHaveBeenCalled();
       });
@@ -85,6 +94,10 @@ describe("App.Controllers.Dashboard", function() {
 
       it("has a badgeShow reference", function() {
         expect(subject.badgeShow).toBeJqueryWrapped("#badge-show");
+      });
+
+      it("has a badgeSorter reference", function() {
+        expect(subject.badgeSortSelect).toBeJqueryWrapped("#badge-sorter");
       });
     });
 
@@ -184,22 +197,6 @@ describe("App.Controllers.Dashboard", function() {
       });
     });
 
-    describe("createBadgeFilterView", function() {
-      beforeEach(function() {
-        subject.badgeFilter = undefined;
-        spyOn(subject, "renderBadgeFilter");
-        subject.createBadgeFilterView();
-      });
-
-      it("creates a badge filter view", function() {
-        expect(subject.badgeFilter).toBeTypeof(App.Views.BadgeFilter);
-      });
-
-      it("renders the badge filters", function() {
-        expect(subject.renderBadgeFilter).toHaveBeenCalled();
-      });
-    });
-
     describe("renderBadges", function() {
       beforeEach(function() {
         subject.user = new App.Models.User(userAttributes);
@@ -248,19 +245,6 @@ describe("App.Controllers.Dashboard", function() {
       it("renders the badge pagiantion into the badgesContainer", function() {
         expect($badgesContainer.children().length).toBeGreaterThan(0);
         expect($badgesContainer.find("#badges-pagination").length).toBeGreaterThan(0);
-      });
-    });
-
-    describe("renderBadgeFilter", function() {
-      beforeEach(function() {
-        subject.badgesContainer = $badgesContainer;
-        subject.badgeFilter.collection = new App.Collections.Badges(_.clone(userAttributes.badges));
-        subject.renderBadgeFilter();
-      });
-
-      it("renders the badge pagiantion into the badgesContainer", function() {
-        expect($badgesContainer.children().length).toBeGreaterThan(0);
-        expect($badgesContainer.find("#badge-filter").length).toBeGreaterThan(0);
       });
     });
   });

@@ -30749,6 +30749,14 @@ FakeServer.initialize();
     return dateTime;
   }
 
+  function sortBadges(badges, sortBy) {
+    var sortFilter = sortBy.split("-");
+    var criteria = sortFilter.first();
+    var direction = sortFilter.last();
+    var sortedCollection = (direction === "asc") ? badges.sortBy(criteria).reverse() : badges.sortBy(criteria);
+    return sortedCollection;
+  }
+
   global.FakeAPI = {
     users: [
       {
@@ -30798,10 +30806,15 @@ FakeServer.initialize();
     var startAt = (perPage * page) - perPage;
     var endAt = startAt + perPage;
     var user = FakeAPI.users.findWhere({ id: id });
+    var badges = user.badges;
+
+    if (params.sort) {
+      badges = sortBadges(badges, params.sort);
+    }
 
     return {
-      totalCount: user.badges.length,
-      badges: user.badges.slice(startAt, endAt)
+      totalCount: badges.length,
+      badges: badges.slice(startAt, endAt)
     };
   });
 
@@ -30914,7 +30927,7 @@ function program1(depth0,data) {
   if (stack2 = helpers.evidenceUrl) { stack2 = stack2.call(depth0, {hash:{},data:data}); }
   else { stack2 = (depth0 && depth0.evidenceUrl); stack2 = typeof stack2 === functionType ? stack2.call(depth0, {hash:{},data:data}) : stack2; }
   buffer += escapeExpression(stack2)
-    + "</a></span>\n    </p>\n  </div>\n</div>\n\n<div class=\"badge-evidence\">\n  ";
+    + "</a></span>\n    </p>\n  </div>\n</div>\n\n<div class=\"badge-evidence\">\n  <p><strong>Evidence</strong></p>\n  ";
   stack2 = helpers.each.call(depth0, ((stack1 = (depth0 && depth0.evidence)),stack1 == null || stack1 === false ? stack1 : stack1.media), {hash:{},inverse:self.noop,fn:self.program(1, program1, data),data:data});
   if(stack2 || stack2 === 0) { buffer += stack2; }
   buffer += "\n  <p>\n    "
@@ -30946,6 +30959,16 @@ function program1(depth0,data) {
   if(stack1 || stack1 === 0) { buffer += stack1; }
   buffer += "\n    </select>\n  </li>\n  <li>\n    <i class=\"fa fa-calendar\"></i>\n    <input name=\"date\" id=\"filter-badge-date-field\" />\n  </li>\n  <li>\n    <button class=\"search\">Search <i class=\"fa fa-search\"></i></button>\n  </li>\n</ul>\n";
   return buffer;
+  });;
+this["App"] = this["App"] || {};
+this["App"]["Templates"] = this["App"]["Templates"] || {};
+this["App"]["Templates"]["badge_sorter"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  
+
+
+  return "<select name=\"badge-sorter\">\n  <option>Sort Badges</option>\n  <option value=\"name-desc\">Name (A-Z)</option>\n  <option value=\"name-asc\">Name (Z-A)</option>\n  <option value=\"issuedOn-asc\">Date (newest first)</option>\n  <option value=\"issuedOn-desc\">Date (oldest first)</option>\n</select>\n";
   });;
 this["App"] = this["App"] || {};
 this["App"]["Templates"] = this["App"]["Templates"] || {};
@@ -31373,65 +31396,24 @@ App.Views.BadgeDetail = App.Views.Badge.extend({
   });
 })();
 
-App.Views.BadgeFilter = App.Views.BaseView.extend({
-  template: App.Templates.badge_filter,
-  tagName: "section",
-  id: "badge-filter",
+App.Views.BadgeSorter = App.Views.BaseView.extend({
+  template: App.Templates.badge_sorter,
   events: {
-    "click button.search": "handleSearchButtonClick"
+    "change select": "handleSelectChange"
   },
 
-  initialize: function(options) {
-    options = options || {};
-    _.bindAll(this, "handleSearchSuccess");
-    this.onBeforeFetch = options.onBeforeFetch || $.noop;
-    this.onAfterFetch = options.onAfterFetch || $.noop;
+  initialize: function() {
+    this.render();
+    this.selector = this.$el.find("select");
   },
 
   render: function() {
-    this.$el.html(this.template({
-      statuses: App.Models.Badge.STATUSES,
-      types: App.Models.Badge.TYPES
-    }));
-    this.cacheElements();
-    this.initializeDatepicker();
-    return this.$el;
+    this.$el.html(this.template());
   },
 
-  cacheElements: function() {
-    this.statusSelect = $("#filter-badge-status-select");
-    this.typeSelect = $("#filter-badge-type-select");
-    this.categorySelect = $("#filter-badge-category-select");
-    this.dateField = $("#filter-badge-date-field");
-  },
-
-  initializeDatepicker: function() {
-    this.dateField.datepicker();
-  },
-
-  handleSearchButtonClick: function(e) {
-    e.preventDefault();
-    App.Dispatcher.trigger("badgesFiltered");
-    this.toggleLoading();
-    this.collection.filters = this.getFilters();
-    this.onBeforeFetch();
-    this.collection.fetch()
-      .done(this.handleSearchSuccess);
-  },
-
-  handleSearchSuccess: function() {
-    this.toggleLoading();
-    this.onAfterFetch();
-    if (!_.size(this.getFilters())) App.Dispatcher.trigger("badgePaginator:resetCount");
-  },
-
-  getFilters: function() {
-    var filters = {};
-    if (this.statusSelect.val()) filters.status = this.statusSelect.val();
-    if (this.typeSelect.val()) filters.badgeType = this.typeSelect.val();
-    if (this.categorySelect.val()) filters.category = this.categorySelect.val();
-    if (this.dateField.val()) filters.date = this.dateField.val();
-    return filters;
+  handleSelectChange: function() {
+    this.collection.filters["sort"] = this.selector.val();
+    this.collection.fetch();
   }
 });
 
@@ -31452,6 +31434,10 @@ App.Views.BadgeFilter = App.Views.BaseView.extend({
       this.badgeDetailView = new App.Views.BadgeDetail({
         user: this.user
       });
+      this.badgeSorter = new App.Views.BadgeSorter({
+        el: this.badgeSortSelect,
+        collection: this.badges
+      });
       this.registerIndexEvents();
       this.fetchBadges();
       this.initialized = true;
@@ -31465,6 +31451,7 @@ App.Views.BadgeFilter = App.Views.BaseView.extend({
     this.badgeContainer = $("#badge-container");
     this.badgeIndex = $("#badge-index");
     this.badgeShow = $("#badge-show");
+    this.badgeSortSelect = $("#badge-sorter");
   },
 
   fetchBadges: function() {

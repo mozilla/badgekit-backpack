@@ -2807,6 +2807,24 @@ a.button {
         float: none;
         display: inline-block; }
 
+#badge-index {
+  *zoom: 1;
+  display: block; }
+  #badge-index:before, #badge-index:after {
+    content: " ";
+    display: table; }
+  #badge-index:after {
+    clear: both; }
+
+#badges-container {
+  *zoom: 1;
+  display: block; }
+  #badges-container:before, #badges-container:after {
+    content: " ";
+    display: table; }
+  #badges-container:after {
+    clear: both; }
+
 .badges {
   *zoom: 1;
   display: block;
@@ -3059,3 +3077,13 @@ a.button {
       #badge-detail .badge-evidence p:last-child {
         margin-right: 0; }
 
+
+#badge-sorter {
+  float: left;
+  display: block;
+  margin-right: 2.35765%;
+  width: 100%; }
+  #badge-sorter:last-child {
+    margin-right: 0; }
+  #badge-sorter select {
+    margin: 1em 0 0 1em; }

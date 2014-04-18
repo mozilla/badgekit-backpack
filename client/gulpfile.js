@@ -47,7 +47,7 @@ gulp.task("js", function() {
     "js/views/badge.js",
     "js/views/badge_detail.js",
     "js/views/badges.js",
-    "js/views/badge_filter.js",
+    "js/views/badge_sorter.js",
     "js/controllers/**/*.js"
   ])
   .pipe(concat("application.js").on('error', gutil.log))

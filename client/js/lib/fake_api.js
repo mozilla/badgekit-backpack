@@ -20,6 +20,14 @@
     return dateTime;
   }
 
+  function sortBadges(badges, sortBy) {
+    var sortFilter = sortBy.split("-");
+    var criteria = sortFilter.first();
+    var direction = sortFilter.last();
+    var sortedCollection = (direction === "asc") ? badges.sortBy(criteria).reverse() : badges.sortBy(criteria);
+    return sortedCollection;
+  }
+
   global.FakeAPI = {
     users: [
       {
@@ -69,10 +77,15 @@
     var startAt = (perPage * page) - perPage;
     var endAt = startAt + perPage;
     var user = FakeAPI.users.findWhere({ id: id });
+    var badges = user.badges;
+
+    if (params.sort) {
+      badges = sortBadges(badges, params.sort);
+    }
 
     return {
-      totalCount: user.badges.length,
-      badges: user.badges.slice(startAt, endAt)
+      totalCount: badges.length,
+      badges: badges.slice(startAt, endAt)
     };
   });
 

@@ -114,6 +114,14 @@
   }
 }
 
+#badge-index {
+  @include row;
+}
+
+#badges-container {
+  @include row;
+}
+
 .badges {
   @include row;
   margin: 0;
@@ -378,4 +386,12 @@
 
 .breadcrumbs {
   @extend %breadcrumb;
+}
+
+#badge-sorter {
+  @include span-columns(12);
+
+  select {
+    margin: 1em 0 0 1em;
+  }
 }

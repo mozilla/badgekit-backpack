@@ -72,7 +72,7 @@ function program1(depth0,data) {
   if (stack2 = helpers.evidenceUrl) { stack2 = stack2.call(depth0, {hash:{},data:data}); }
   else { stack2 = (depth0 && depth0.evidenceUrl); stack2 = typeof stack2 === functionType ? stack2.call(depth0, {hash:{},data:data}) : stack2; }
   buffer += escapeExpression(stack2)
-    + "</a></span>\n    </p>\n  </div>\n</div>\n\n<div class=\"badge-evidence\">\n  ";
+    + "</a></span>\n    </p>\n  </div>\n</div>\n\n<div class=\"badge-evidence\">\n  <p><strong>Evidence</strong></p>\n  ";
   stack2 = helpers.each.call(depth0, ((stack1 = (depth0 && depth0.evidence)),stack1 == null || stack1 === false ? stack1 : stack1.media), {hash:{},inverse:self.noop,fn:self.program(1, program1, data),data:data});
   if(stack2 || stack2 === 0) { buffer += stack2; }
   buffer += "\n  <p>\n    "
@@ -104,6 +104,16 @@ function program1(depth0,data) {
   if(stack1 || stack1 === 0) { buffer += stack1; }
   buffer += "\n    </select>\n  </li>\n  <li>\n    <i class=\"fa fa-calendar\"></i>\n    <input name=\"date\" id=\"filter-badge-date-field\" />\n  </li>\n  <li>\n    <button class=\"search\">Search <i class=\"fa fa-search\"></i></button>\n  </li>\n</ul>\n";
   return buffer;
+  });;
+this["App"] = this["App"] || {};
+this["App"]["Templates"] = this["App"]["Templates"] || {};
+this["App"]["Templates"]["badge_sorter"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  
+
+
+  return "<select name=\"badge-sorter\">\n  <option>Sort Badges</option>\n  <option value=\"name-desc\">Name (A-Z)</option>\n  <option value=\"name-asc\">Name (Z-A)</option>\n  <option value=\"issuedOn-asc\">Date (newest first)</option>\n  <option value=\"issuedOn-desc\">Date (oldest first)</option>\n</select>\n";
   });;
 this["App"] = this["App"] || {};
 this["App"]["Templates"] = this["App"]["Templates"] || {};

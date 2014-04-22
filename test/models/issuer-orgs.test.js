@@ -6,7 +6,7 @@ prepare().then(function (db) {
   test('Sanity test', function (t) {
     const data = {
       id: 100,
-      jsonUrl: 'http://example.org/two',
+      jsonUrl: 'http://example.org/26',
       name: 'Example Issuer',
       url: 'http://example.org',
     }

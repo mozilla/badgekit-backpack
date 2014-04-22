@@ -11,6 +11,14 @@ prepare({db: true}).then(function(api) {
       })
   })
 
+  test('GET /users/:userId/badges', function (t) {
+    api.get('/users/test-user/badges')
+      .then(function(res) {
+        t.ok(res.body.length >= 1, 'gets back some badges')
+        t.end()
+      })
+  })
+
   test('POST /users/:userId/badges', function (t) {
     startBadgeServer().then(function(server) {
       const baseUrl = server.fullUrl
@@ -25,7 +33,7 @@ prepare({db: true}).then(function(api) {
     })
   })
 
-  test('POST /users/:userId/badges/:badgeId', function (t) {
+  test('GET /users/:userId/badges/:badgeId', function (t) {
     api.get('/users/test-user/badges/1')
       .then(function(res) {
         t.same(res.statusCode, 200, 'has HTTP 200')

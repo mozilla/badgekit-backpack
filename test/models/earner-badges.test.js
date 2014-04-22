@@ -6,7 +6,7 @@ prepare().then(function (db) {
   test('Sanity test', function (t) {
     const data = {
       earnerId: 'test-user',
-      jsonUrl: 'http://example.org/one',
+      jsonUrl: 'http://example.org/26',
       badgeClassId: 1,
       uid: 'some-badge-assertion',
       imageUrl: 'http://example.org/image.png',

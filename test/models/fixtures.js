@@ -1,3 +1,4 @@
+const Faker = require('Faker')
 const Earners = require('../../models/earners')
 const Evidence = require('../../models/evidence')
 const EarnerData = require('../../models/earner-data')
@@ -49,25 +50,23 @@ module.exports = [
       description: 'Another simple greeting'},
   ]],
 
-  [JSONModel, [
-    { url: 'http://example.org/one',
-      data: '{"sup": true}' },
-    { url: 'http://example.org/two',
-      data: '{"sup": true}' },
-    { url: 'http://example.org/three',
-      data: '{"sup": true}' },
-  ]],
+  [JSONModel, makeRows(50, function (n) {
+    return {
+      url: 'http://example.org/' + n,
+      data: '{"sup": true}',
+    }
+  })],
 
   [IssuerOrgs, [
     { id: 1,
-      jsonUrl: 'http://example.org/one',
+      jsonUrl: 'http://example.org/1',
       name: 'Example Issuer',
       url: 'http://example.org' }
   ]],
 
   [BadgeClasses, [
     { id: 1,
-      jsonUrl: 'http://example.org/one',
+      jsonUrl: 'http://example.org/1',
       issuerOrgId: 1,
       name: 'Example Badge Class',
       description: 'I AM ERROR',
@@ -76,12 +75,26 @@ module.exports = [
       issuerJSONUrl: 'http://example.org/issuer.json' }
   ]],
 
-  [EarnerBadges, [
-    { id: 1,
-      jsonUrl: 'http://example.org/two',
+  [EarnerBadges, makeRows(25, function (n) {
+    return {
+      jsonUrl: 'http://example.org/' + n,
       earnerId: 'test-user',
       badgeClassId: 1,
-      uid: 'test-badge-one',
-      badgeJSONUrl: 'http://example.org/badge.json' }
-  ]],
+      uid: 'test-badge-' + n,
+      badgeJSONUrl: 'http://example.org/badge.json',
+    }
+  })],
 ]
+
+function sample(array) {
+  const len = array.length
+  const rnd = Math.random() * len | 0
+  return array[rnd]
+}
+
+function makeRows(n, fn) {
+  const rows = []
+  var i = 0
+  while (++i <= n) rows.push(fn(i))
+  return rows
+}

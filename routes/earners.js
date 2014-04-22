@@ -260,7 +260,7 @@ module.exports = function earnerRoutes(server) {
     const badgeId = req.params.badgeId
     const options = {
       relationships: true,
-      relationshipsDepth: 2,
+      relationshipsDepth: 3,
     }
     Earners.getOne({id: earnerId})
       .then(function(earner) {

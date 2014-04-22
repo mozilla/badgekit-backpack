@@ -13,6 +13,7 @@
     "gulp-define-module": "~0.1.0",
     "gulp-handlebars": "~2.0.0",
     "gulp-declare": "~0.2.0",
+    "gulp-ejs": "~0.2.2",
     "connect": "~2.14.4"
   },
   "scripts": {},

@@ -56,16 +56,23 @@ Get a specific badge for a specific user.
 Remove a badge from the user's account
 
 ## POST /user/<userId>/evidence
-Add a new piece of evidence. Note this is unassociated with a badge. `data` must be an image (jpg, gif, png, svg)  and is limited to 2mb(?). Request can be multipart or `application/json` with `data` base64 encoded.
+Add a new piece of evidence. Note this is unassociated with a badge. `data` must be an image (jpg, gif, png, svg)  and is limited to 2mb(?). Request should be `application/json` with `content` base64 encoded.
 
-* userId
-* data
+* content
+* contentType
+* description
+
+## GET /user/<userId>/evidence
+Get a list of user's evidence. This will **not** return the `content`, to prevent the request from being huge.
 
 ## GET /user/<userId>/evidence/<evidenceId>
-Get a specific piece of evidence. This will be served with the `Content-Type` that corresponds the data passed in.
+Get data about a specific piece of evidence. `content` will not be base64 decoded.
 
 ## DELETE /user/<userId>/evidence/<evidenceId>
 Delete a piece of evidence associated with a user.
+
+## GET /evidence/<evidenceSlug>
+Get a piece of evidence. This sends `content` base64 decoded and will be served with the `Content-Type` that corresponds the data passed in.
 
 # Authorization
 

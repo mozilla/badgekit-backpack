@@ -1,5 +1,5 @@
 const db = require('../lib/db')
-const xtend = require('xtend')
+const copy = require('../lib/copy')
 const EarnerBadges = db.table('earnerBadges', {
   fields: [
     'id',
@@ -21,7 +21,7 @@ const EarnerBadges = db.table('earnerBadges', {
       obj.issuedOn = null
     if (obj.expires === nullTime)
       obj.expires = null
-    return xtend(Object.create(proto), obj)
+    return copy(Object.create(proto), obj)
   },
   relationships: {
     earner: {

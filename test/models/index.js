@@ -8,35 +8,52 @@ const db = require('../../lib/db')
 const Promise = require('bluebird')
 const path = require('path')
 const fixtures = require('./fixtures')
+const migrations = require('../../lib/migrations')
 
 const query = arity(Promise.promisify(function (sql, callback) {
   return db.query(sql, arity(callback, 2))
 }), 1)
 
-const schemaPath = path.join(__dirname, '..', '..', 'schema.sql')
-const schema = splitByStatement(fs.readFileSync(schemaPath, 'utf8'))
-
 module.exports = function () {
-  return new Promise(function (resolve) {
-    Promise.all(schema.map(query))
-      .then(function(results) {
-        return applyFixtures(fixtures)
-      })
-      .then(function(results) {
-        return resolve(db)
-      })
-      .catch(function (err) {
-        throw err
-      })
-  })
+  const future = applyMigrations()
+    .then(dropDatabase)
+    .then(function() { return applyFixtures(fixtures) })
+    .then(function() { return db })
+    .catch(function (err) {
+      console.error(err);
+      process.exit(1);
+    });
+  return future
 }
 
-function splitByStatement(string) {
-  return string.trim().split(';').map(call('trim')).filter(Boolean)
+function applyMigrations() {
+  const config = db.getDbConfig()
+  const migrateUp = Promise.promisify(migrations.up.bind(migrations))
+  return migrateUp({ config: config })
 }
-function call(method) {
-  return function (obj) { return obj[method]() }
+
+function dropDatabase() {
+  const migrationsTable = 'migrations'
+  const future = query('SHOW TABLES')
+    .then(function (tableData) {
+      const truncateSql = ['SET `foreign_key_checks` = 0'];
+      tableData.forEach(function (obj) {
+        var table = obj[Object.keys(obj)[0]];
+        if (table == migrationsTable) return;
+        truncateSql.push('TRUNCATE TABLE `' + table + '`');
+      })
+      truncateSql.push('SET `foreign_key_checks` = 1');
+      return Promise.all(truncateSql.map(query));
+    })
+
+    .catch(function (err) {
+      console.error(err);
+      process.exit(1);
+    });
+
+  return future;
 }
+
 function arity(fn, num) {
   return function (_) {
     return fn.apply(null, firstN(arguments, num))

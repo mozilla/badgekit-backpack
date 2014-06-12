@@ -14,7 +14,6 @@ const NotFoundError = restify.NotFoundError
 const BadRequestError = restify.BadRequestError
 const keys = Object.keys
 
-
 module.exports = function earnerRoutes(server) {
   server.post('/users', createEarner)
   function createEarner(req, res, next) {

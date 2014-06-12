@@ -3,6 +3,7 @@ const prepare = require('./')
 
 const earnerData = {
   id: 'brian@mozillafoundation.org',
+  under13: true,
   metadata: {
     age: 28,
     sign: 'Leo',
@@ -26,6 +27,7 @@ prepare({db: true}).then(function(api) {
     api.get('/users/brian@mozillafoundation.org')
       .then(function(res) {
         t.same(res.statusCode, 200)
+        t.same(res.body.under13, true)
         t.same(res.body.metadata, earnerData.metadata)
         t.end()
       })
@@ -39,7 +41,6 @@ prepare({db: true}).then(function(api) {
     }
     api.put('/users/brian@mozillafoundation.org', update)
       .then(function(res) {
-        console.dir(res)
         t.same(res.statusCode, 200)
         return api.get('/users/brian@mozillafoundation.org')
       })

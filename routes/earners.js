@@ -19,6 +19,7 @@ module.exports = function earnerRoutes(server) {
   server.post('/users', createEarner)
   function createEarner(req, res, next) {
     const id = req.body.id
+    const under13 = req.body.under13
     const metadata = req.body.metadata
     const metadataRows = keys(metadata).map(function (key) {
       return {
@@ -30,7 +31,7 @@ module.exports = function earnerRoutes(server) {
 
     const putRow = function (row) { return EarnerData.put(row) }
 
-    Earners.put({id: id})
+    Earners.put({id: id, under13: under13 })
       .then(function(result) {
         return Promise.all(metadataRows.map(putRow))
       })

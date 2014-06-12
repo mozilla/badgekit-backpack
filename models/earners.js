@@ -1,7 +1,7 @@
 const db = require('../lib/db')
 const copy = require('../lib/copy')
 const Earners = db.table('earners', {
-  fields: [ 'id', 'createdOn' ],
+  fields: [ 'id', 'createdOn', 'under13' ],
   relationships: {
     badges: {
       type: 'hasMany',
@@ -33,6 +33,7 @@ function toResponse(obj) {
   obj = obj || this
   return {
     id: obj.id,
+    under13: obj.under13,
     createdOn: obj.createdOn,
     badges: obj.badges,
     metadata: obj.metadata,

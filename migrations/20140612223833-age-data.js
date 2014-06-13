@@ -4,7 +4,7 @@ var type = dbm.dataType;
 exports.up = function(db, callback) {
   db.runSql(
     'ALTER TABLE `earners` '
-    + 'ADD `under13` BOOLEAN DEFAULT FALSE', callback)
+    + 'ADD `under13` BOOLEAN', callback)
 };
 
 exports.down = function(db, callback) {

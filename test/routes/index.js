@@ -9,8 +9,6 @@ const server = require('../../')
 const sha256 = require('../../lib/hash').sha256
 const prepareDb = require('../models')
 
-const MASTER_SECRET = process.env.MASTER_SECRET
-
 const spawn = module.exports = function spawn(opts) {
   return new Promise(function (resolve, reject) {
     server.listen(0, function (error) {
@@ -43,8 +41,11 @@ APIClient.prototype.finish = function finish(t) {
 }
 
 function authorizationHeader(opts) {
+  const MASTER_KEY = process.env.MASTER_KEY || 'master'
+  const MASTER_SECRET = process.env.MASTER_SECRET
+
   const payload = {
-    key: 'master',
+    key: MASTER_KEY,
     method: opts.method,
     path: opts.path,
   }
@@ -63,6 +64,9 @@ function authorizationHeader(opts) {
 
 function requestWithoutBody(method) {
   return function (urlSuffix) {
+    const MASTER_KEY = process.env.MASTER_KEY || 'master'
+    const MASTER_SECRET = process.env.MASTER_SECRET
+
     const url = this.prefix + urlSuffix
     const result = {}
     const options = urlUtil.parse(url)
@@ -85,6 +89,9 @@ function requestWithoutBody(method) {
 
 function requestWithBody(method) {
   return function (urlSuffix, formData) {
+    const MASTER_KEY = process.env.MASTER_KEY || 'master'
+    const MASTER_SECRET = process.env.MASTER_SECRET
+
     const url = this.prefix + urlSuffix
     const options = urlUtil.parse(url)
     return new Promise(function (resolve, reject) {

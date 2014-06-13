@@ -4,10 +4,15 @@ const Evidence = require('../../models/evidence')
 const EarnerData = require('../../models/earner-data')
 const JSONModel = require('../../models/json')
 const IssuerOrgs = require('../../models/issuer-orgs')
+const IssuerTokens = require('../../models/issuer-tokens')
 const BadgeClasses = require('../../models/badge-classes')
 const EarnerBadges = require('../../models/earner-badges')
 
 module.exports = [
+  [IssuerTokens, [
+    {name: 'Widgets', key: 'widgets', token: 'shhsecret'},
+  ]],
+
   [Earners, [
     {id: 'test-user'},
     {id: 'delete-me'},

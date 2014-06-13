@@ -19,7 +19,7 @@ module.exports = function earnerRoutes(server) {
   function createEarner(req, res, next) {
     const id = req.body.id
     const under13 = req.body.under13
-    const metadata = req.body.metadata
+    const metadata = req.body.metadata || {}
     const metadataRows = keys(metadata).map(function (key) {
       return {
         earnerId: id,

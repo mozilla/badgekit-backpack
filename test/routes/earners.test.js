@@ -33,6 +33,18 @@ prepare({db: true}).then(function(api) {
       })
   })
 
+  test('POST /users, no age', function (t) {
+    const form = {id: 'brian+test@example.org',}
+
+    api.post('/users', form)
+      .then(function(res) {
+        t.same(res.statusCode, 201)
+        t.same(res.body.metadata, {})
+        t.same(res.body.under13, null)
+        t.end()
+      })
+  })
+
   test('PUT /users/:userId', function (t) {
     const update = {
       age: '∞',

@@ -85,7 +85,7 @@ module.exports = function verifyRequest() {
           return success(auth.key)
 
         if (!(/^\/users\/.+?\/badges\/?$/.exec(req.url)))
-          return next(new ForbiddenError('Issuer tokens can only send issue new badges'))
+          return next(new ForbiddenError('Issuer tokens can only issue new badges'))
         return success(auth.key)
       })
       .catch(function (err) {

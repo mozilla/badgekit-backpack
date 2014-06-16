@@ -27,9 +27,23 @@ server.use(restify.queryParser({mapParams: false}));
 server.use(restify.bodyParser({mapParams: false, rejectUnknown: true}));
 server.use(logInternalError())
 server.use(resolvePath())
-server.use(verifyRequest())
+server.use(verifyRequest({
+  whitelists: {
+    // no authorization check peformed
+    global: [
+      '/',
+      '/healthcheck'
+    ],
 
-applyRoutes(server)
+    // issuers can only access these routes (in addtion to above)
+    issuer: [
+      '/auth-test',
+      /^\/users\/.+?\/badges\/?$/
+    ],
+  },
+}))
+
+applyRoutes(server);
 
 module.exports = server;
 

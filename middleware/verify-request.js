@@ -1,18 +1,18 @@
 const jws = require('jws')
 const hash = require('../lib/hash').hash
+const checkWhitelist = require('../lib/whitelist')
 const IssuerTokens = require('../models/issuer-tokens')
 const ForbiddenError = require('restify').ForbiddenError
 const InternalServerError = require('restify').InternalServerError
 
-module.exports = function verifyRequest() {
+module.exports = function verifyRequest(options) {
+  options = options || {}
+  const whitelists = options.whitelists
+
   return function (req, res, next) {
     const MASTER_SECRET = process.env.MASTER_SECRET
 
-    if (req.url.indexOf('/evidence/') === 0)
-      return next()
-
-    if (req.url == '/' ||
-        req.url == '/healthcheck')
+    if (checkWhitelist(whitelists.global, req.url))
       return next()
 
     const token = getAuthToken(req)
@@ -81,10 +81,7 @@ module.exports = function verifyRequest() {
         if (!jws.verify(token, secret))
           return next(new ForbiddenError('Invalid token signature'))
 
-        if (req.url === '/auth-test')
-          return success(auth.key)
-
-        if (!(/^\/users\/.+?\/badges\/?$/.exec(req.url)))
+        if (!checkWhitelist(whitelists.issuer, req.url))
           return next(new ForbiddenError('Issuer tokens can only issue new badges'))
         return success(auth.key)
       })

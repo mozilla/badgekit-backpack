@@ -93,9 +93,10 @@ module.exports = [
   })],
 
   [BadgeImages, [
-    { slug: 'test',
+    { id: 1,
+      slug: 'test',
       contentType: 'image/png',
-      data: fs.readFileSync(path.join(__dirname, 'test-image.png'), 'base64')
+      data: fs.readFileSync(path.join(__dirname, 'test-image.png')).toString('base64'),
     }
   ]],
 ]

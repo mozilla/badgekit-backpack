@@ -26,10 +26,16 @@ prepare({db: true}).then(function(api) {
       api.post('/users/test-user/badges', form)
         .then(function(res) {
           const location = res.headers.location
+          const relativeLocation = location.slice(location.indexOf('/users/'))
           t.same(res.statusCode, 201, 'has HTTP 201 created')
           t.ok(location.indexOf('/users/test-user/badges/') > -1, 'right location')
+          return api.get(relativeLocation)
+        })
+        .then(function (res) {
+          console.dir(res)
           server.close(), t.end()
         })
+
     })
   })
 

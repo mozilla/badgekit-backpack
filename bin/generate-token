@@ -1,0 +1,82 @@
+#!/usr/bin/env node
+const IssuerTokens = require('../models/issuer-tokens');
+const crypto = require('crypto');
+const optimist = require('optimist');
+
+const argv = optimist
+  .usage('Usage: generate-token --name "Issuer Name"')
+
+  .describe('name', 'Name of the issuer to generate a token for')
+  .alias('n', 'name')
+  .string('n')
+
+  .alias('h', 'help')
+  .alias('h', '?')
+  .boolean('h')
+  .argv;
+
+if (argv.help || !argv.name) {
+  optimist.showHelp();
+  process.exit(0);
+}
+
+function generateKey(name) {
+  return (
+    crypto.createHash('sha1')
+      .update(''+name)
+      .update(''+Date.now())
+      .update(crypto.randomBytes(12))
+      .digest('hex')
+  );
+}
+
+function generateToken() {
+  const bytes = crypto.randomBytes(48);
+  return bytes.toString('base64');
+}
+
+function printCredentials(o) {
+  process.stdout.write('Name:  ' + o.name + '\n');
+  process.stdout.write('Key:   ' + o.key + '\n');
+  process.stdout.write('Token: ' + o.token + '\n');
+}
+
+function lookupTokenKeyPair(name) {
+  IssuerTokens.getOne({name: name})
+    .then(function (credentials) {
+      printCredentials(credentials);
+      process.exit(0);
+    })
+    .catch(function (err) {
+      console.error(err)
+      process.exit(1);
+    })
+}
+
+function saveTokenKeyPair(name) {
+  const key = generateKey(name);
+  const token = generateToken();
+  const issuerData = {
+    name: name,
+    key: key,
+    token: token
+  };
+  IssuerTokens.put(issuerData)
+    .then(function (result) {
+      printCredentials(issuerData);
+      process.exit(0);
+    })
+
+    .catch(function (err) {
+      if (err.code == 'ER_DUP_ENTRY') {
+        console.error('Token already exists, looking up...');
+        return lookupTokenKeyPair(name);
+      }
+
+      console.error(err);
+      process.exit(1);
+    })
+}
+
+if (!module.parent)
+  saveTokenKeyPair(argv.name);

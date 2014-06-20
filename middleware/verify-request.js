@@ -1,14 +1,18 @@
 const jws = require('jws')
 const hash = require('../lib/hash').hash
+const checkWhitelist = require('../lib/whitelist')
+const IssuerTokens = require('../models/issuer-tokens')
 const ForbiddenError = require('restify').ForbiddenError
+const InternalServerError = require('restify').InternalServerError
 
-module.exports = function verifyRequest() {
+module.exports = function verifyRequest(options) {
+  options = options || {}
+  const whitelists = options.whitelists
+
   return function (req, res, next) {
-    if (req.url.indexOf('/evidence/') === 0)
-      return next()
+    const MASTER_SECRET = process.env.MASTER_SECRET
 
-    if (req.url == '/' ||
-        req.url == '/healthcheck')
+    if (checkWhitelist(whitelists.global, req.url))
       return next()
 
     const token = getAuthToken(req)
@@ -65,12 +69,29 @@ module.exports = function verifyRequest() {
     if (!auth.key)
       return next(new ForbiddenError('Missing JWT claim: key'))
 
-    const masterSecret = process.env.MASTER_SECRET
-    if (!jws.verify(token, masterSecret))
-      return next(new ForbiddenError('Invalid token signature'))
-    return success()
+    if (auth.key === 'master') {
+      if (!jws.verify(token, MASTER_SECRET))
+        return next(new ForbiddenError('Invalid token signature'))
+      return success(auth.key)
+    }
 
-    function success() {
+    IssuerTokens.getOne({key: auth.key})
+      .then(function (credentials) {
+        const secret = credentials.token;
+        if (!jws.verify(token, secret))
+          return next(new ForbiddenError('Invalid token signature'))
+
+        if (!checkWhitelist(whitelists.issuer, req.url))
+          return next(new ForbiddenError('Issuer tokens can only issue new badges'))
+        return success(auth.key)
+      })
+      .catch(function (err) {
+        req.log.error(err, 'Error interacting with database');
+        return next(new InternalServerError('Could not connect to database'))
+      })
+
+    function success(key) {
+      req.authKey = key;
       return next()
     }
   }

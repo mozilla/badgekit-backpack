@@ -9,6 +9,10 @@ module.exports = function applyRoutes(server) {
     });
   })
 
+  server.get('/auth-test', function (req, res) {
+    res.send(req.authKey);
+  })
+
   ;[earners].forEach(callWith(server))
 }
 

@@ -3,6 +3,7 @@ const prepare = require('./')
 
 const earnerData = {
   id: 'brian@mozillafoundation.org',
+  under13: true,
   metadata: {
     age: 28,
     sign: 'Leo',
@@ -26,7 +27,20 @@ prepare({db: true}).then(function(api) {
     api.get('/users/brian@mozillafoundation.org')
       .then(function(res) {
         t.same(res.statusCode, 200)
+        t.same(res.body.under13, true)
         t.same(res.body.metadata, earnerData.metadata)
+        t.end()
+      })
+  })
+
+  test('POST /users, no age', function (t) {
+    const form = {id: 'brian+test@example.org',}
+
+    api.post('/users', form)
+      .then(function(res) {
+        t.same(res.statusCode, 201)
+        t.same(res.body.metadata, {})
+        t.same(res.body.under13, null)
         t.end()
       })
   })
@@ -39,7 +53,6 @@ prepare({db: true}).then(function(api) {
     }
     api.put('/users/brian@mozillafoundation.org', update)
       .then(function(res) {
-        console.dir(res)
         t.same(res.statusCode, 200)
         return api.get('/users/brian@mozillafoundation.org')
       })

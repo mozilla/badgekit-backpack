@@ -32,7 +32,8 @@ server.use(verifyRequest({
     // no authorization check peformed
     global: [
       '/',
-      '/healthcheck'
+      '/healthcheck',
+      /^\/public\/.+/,
     ],
 
     // issuers can only access these routes (in addtion to above)

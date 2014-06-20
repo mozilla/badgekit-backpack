@@ -63,7 +63,7 @@ function authorizationHeader(opts) {
 }
 
 function requestWithoutBody(method) {
-  return function (urlSuffix) {
+  return function (urlSuffix, opts) {
     const MASTER_KEY = process.env.MASTER_KEY || 'master'
     const MASTER_SECRET = process.env.MASTER_SECRET
 
@@ -81,14 +81,14 @@ function requestWithoutBody(method) {
       })
     }
     return new Promise(function (resolve, reject) {
-      const req = http.request(options, handleResponse(resolve, reject))
+      const req = http.request(options, handleResponse(resolve, reject, opts))
       req.end()
     })
   }
 }
 
 function requestWithBody(method) {
-  return function (urlSuffix, formData) {
+  return function (urlSuffix, formData, opts) {
     const MASTER_KEY = process.env.MASTER_KEY || 'master'
     const MASTER_SECRET = process.env.MASTER_SECRET
 
@@ -108,20 +108,23 @@ function requestWithBody(method) {
           body: jsonFormData,
         })
       }
-      const req = http.request(options, handleResponse(resolve, reject))
+      const req = http.request(options, handleResponse(resolve, reject, opts))
       req.write(jsonFormData)
       req.end()
     })
   }
 }
 
-function handleResponse(resolve, reject) {
+function handleResponse(resolve, reject, opts) {
+  opts = opts || {}
   return function (res) {
     const result = {}
     result.headers = res.headers
     result.statusCode = res.statusCode
 
-    res.setEncoding('utf8')
+    if (!opts.buffer)
+      res.setEncoding('utf8')
+
     res.pipe(concat(function (data) {
       try { result.body = JSON.parse(data) }
       catch (err) { result.body = data }

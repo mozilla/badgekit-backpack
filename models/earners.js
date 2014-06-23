@@ -26,16 +26,23 @@ const Earners = db.table('earners', {
     delete obj._metadata
     return copy(Object.create(proto), obj)
   },
-  methods: { toResponse: toResponse }
+  methods: {
+    toResponse: function (req) {
+      return Earners.toResponse(this, req)
+    }
+  }
 })
 
-function toResponse(obj) {
+function toResponse(obj, req) {
+  const EarnerBadges = require('./earner-badges')
   obj = obj || this
   return {
     id: obj.id,
     under13: obj.under13,
     createdOn: obj.createdOn,
-    badges: obj.badges,
+    badges: obj.badges.map(function (badge) {
+      return EarnerBadges.toResponse(badge, req)
+    }),
     metadata: obj.metadata,
   }
 }

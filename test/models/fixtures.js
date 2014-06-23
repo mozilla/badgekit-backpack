@@ -1,4 +1,5 @@
-const Faker = require('Faker')
+const path = require('path')
+const fs = require('fs')
 const Earners = require('../../models/earners')
 const Evidence = require('../../models/evidence')
 const EarnerData = require('../../models/earner-data')
@@ -7,6 +8,7 @@ const IssuerOrgs = require('../../models/issuer-orgs')
 const IssuerTokens = require('../../models/issuer-tokens')
 const BadgeClasses = require('../../models/badge-classes')
 const EarnerBadges = require('../../models/earner-badges')
+const BadgeImages = require('../../models/badge-images')
 
 module.exports = [
   [IssuerTokens, [
@@ -89,6 +91,14 @@ module.exports = [
       badgeJSONUrl: 'http://example.org/badge.json',
     }
   })],
+
+  [BadgeImages, [
+    { id: 1,
+      slug: 'test',
+      contentType: 'image/png',
+      data: fs.readFileSync(path.join(__dirname, 'test-image.png')).toString('base64'),
+    }
+  ]],
 ]
 
 function sample(array) {

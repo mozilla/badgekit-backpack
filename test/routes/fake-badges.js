@@ -1,3 +1,5 @@
+const path = require('path')
+const fs = require('fs')
 const Faker = require('Faker')
 const Promise = require('bluebird')
 const http = require('http')
@@ -15,6 +17,9 @@ function startFakeBadgeServer() {
        case '/issuer.json':
         return issuer(req, res)
         break;
+       case '/image.png':
+        return image(req, res)
+        break;
       default:
         res.statusCode = 404
         res.write('NotFound')
@@ -26,6 +31,12 @@ function startFakeBadgeServer() {
       return resolve(server)
     })
   })
+}
+
+function image(req, res) {
+  res.setHeader('content-type', 'image/png')
+  fs.createReadStream(path.join(__dirname, 'test-image.png'))
+    .pipe(res)
 }
 
 function assertion(req, res) {
@@ -49,7 +60,7 @@ function badge(req, res) {
   res.end(JSON.stringify({
     name: 'lkajsdflsjf',
     description: Faker.Lorem.sentence(),
-    image: Faker.Image.imageUrl(),
+    image: 'http://' + req.headers.host + '/image.png',
     criteria: 'http://example.org/criteria',
     issuer: 'http://' + req.headers.host + '/issuer.json',
   }))

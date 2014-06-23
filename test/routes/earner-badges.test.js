@@ -1,6 +1,10 @@
+const Promise = require('bluebird')
+const bakery = require('openbadges-bakery')
 const test = require('tap').test
 const prepare = require('./')
 const startBadgeServer = require('./fake-badges')
+
+const getDataFromBakedBadge = Promise.promisify(bakery.debake)
 
 prepare({db: true}).then(function(api) {
   test('GET /users/:userId/badges', function (t) {
@@ -26,10 +30,24 @@ prepare({db: true}).then(function(api) {
       api.post('/users/test-user/badges', form)
         .then(function(res) {
           const location = res.headers.location
+          const relativeLocation = location.slice(location.indexOf('/users/'))
           t.same(res.statusCode, 201, 'has HTTP 201 created')
           t.ok(location.indexOf('/users/test-user/badges/') > -1, 'right location')
+          return api.get(relativeLocation)
+        })
+        .then(function (res) {
+          const location = res.body.bakedBadgeUrl
+          const relativeLocation = location.slice(location.indexOf('/public/'))
+          return api.get(relativeLocation, {buffer: true})
+        })
+        .then(function (res) {
+          return getDataFromBakedBadge(res.body)
+        })
+        .then(function (data) {
+          t.ok(data, 'as long as there is something here we are good')
           server.close(), t.end()
         })
+
     })
   })
 

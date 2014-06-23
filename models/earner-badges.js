@@ -9,6 +9,7 @@ const EarnerBadges = db.table('earnerBadges', {
     'badgeClassId',
     'uid',
     'imageUrl',
+    'badgeImageSlug',
     'badgeJSONUrl',
     'evidenceUrl',
     'issuedOn',
@@ -42,4 +43,22 @@ const EarnerBadges = db.table('earnerBadges', {
   },
 })
 
+EarnerBadges.toResponse = function toResponse(obj, req) {
+  const response = {
+    id: obj.id,
+    createdOn: obj.createdOn,
+    jsonUrl: obj.jsonUrl,
+    earnerId: obj.earnerId,
+    uid: obj.uid,
+    bakedBadgeUrl: obj.badgeImageSlug
+      ? '/public/images/' + obj.badgeImageSlug
+      : null,
+    badgeJSONUrl: obj.badgeJSONUrl,
+    evidenceUrl: obj.evidenceUrl,
+    issuedOn: obj.issuedOn,
+  }
+  if (req && response.bakedBadgeUrl)
+    response.bakedBadgeUrl = req.resolvePath(response.bakedBadgeUrl)
+  return response
+}
 module.exports = EarnerBadges

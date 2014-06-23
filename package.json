@@ -13,6 +13,7 @@
     "jws": "~0.2.5",
     "mysql": "~2.1.1",
     "newrelic": "~1.4.0",
+    "openbadges-bakery": "~1.0.3",
     "optimist": "~0.6.1",
     "request": "~2.34.0",
     "restify": "~2.7.0",

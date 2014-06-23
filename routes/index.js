@@ -1,5 +1,6 @@
 const package = require('../package')
 const earners = require('./earners')
+const badgeImages = require('./badge-images')
 
 module.exports = function applyRoutes(server) {
   server.get('/', function (req, res) {
@@ -13,7 +14,8 @@ module.exports = function applyRoutes(server) {
     res.send(req.authKey);
   })
 
-  ;[earners].forEach(callWith(server))
+  ;[earners,
+    badgeImages].forEach(callWith(server))
 }
 
 function callWith(param) {

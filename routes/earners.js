@@ -1,6 +1,9 @@
+const http = require('http')
+const https = require('https')
 const restify = require('restify')
 const Promise = require('bluebird')
 const request = require('request')
+const bakery = require('openbadges-bakery')
 const sha1 = require('../lib/hash').sha1
 const JSONModel = require('../models/json')
 const Evidence = require('../models/evidence')
@@ -9,6 +12,7 @@ const EarnerData = require('../models/earner-data')
 const IssuerOrgs = require('../models/issuer-orgs')
 const BadgeClasses = require('../models/badge-classes')
 const EarnerBadges = require('../models/earner-badges')
+const BadgeImages = require('../models/badge-images')
 
 const NotFoundError = restify.NotFoundError
 const BadRequestError = restify.BadRequestError
@@ -54,7 +58,8 @@ module.exports = function earnerRoutes(server) {
       .then(function(earner) {
         if (!earner)
           throw new NotFoundError('Could not find earner with id `' + req.params.userId + '`')
-        return res.send(200, earner.toResponse())
+        const response = earner.toResponse(req)
+        return res.send(200, response)
       })
 
       .catch(NotFoundError, next)
@@ -258,10 +263,7 @@ module.exports = function earnerRoutes(server) {
   function findEarnerBadge(req, res, next) {
     const earnerId = req.params.userId
     const badgeId = req.params.badgeId
-    const options = {
-      relationships: true,
-      relationshipsDepth: 3,
-    }
+    const options = {relationships: true}
     Earners.getOne({id: earnerId})
       .then(function(earner) {
         if (!earner)
@@ -277,7 +279,8 @@ module.exports = function earnerRoutes(server) {
       .then(function(badge) {
         if (!badge)
           throw new NotFoundError('Could not find badge with id `' + badgeId + '`')
-        return res.send(200, badge)
+        const response = EarnerBadges.toResponse(badge, req)
+        return res.send(200, response)
       })
 
       .catch(NotFoundError, next)
@@ -303,11 +306,30 @@ module.exports = function earnerRoutes(server) {
     const form = req.body
     const earnerId = req.params.userId
     const assertionUrl = form.assertionUrl
+    var structures
+    var badgeImageSlug
     Earners.getOne({id: earnerId})
       .then(function(earner) {
         if (!earner)
           throw new NotFoundError('Could not find earner with id `' + earnerId + '`')
         return getAllBadgeStructures(assertionUrl, earnerId)
+      })
+      .then(function (_structures) {
+        structures = _structures
+        return getAndBakeImage(structures.badge.image, structures.assertion)
+      })
+      .then(function (imageData) {
+        const encodedImageData = imageData.toString('base64')
+        badgeImageSlug = sha1(encodedImageData)
+        return BadgeImages.put({
+          slug: badgeImageSlug,
+          contentType: 'image/png',
+          data: encodedImageData,
+        })
+      })
+      .then(function (result) {
+        structures.imageSlug = badgeImageSlug
+        return structures
       })
       .then(saveBadgeStructures)
       .then(function(earnerBadge) {
@@ -315,6 +337,7 @@ module.exports = function earnerRoutes(server) {
         return res.send(201, {status: 'created'})
       })
       .catch(BadRequestError, next)
+      .catch(next)
   }
 
 }
@@ -361,7 +384,7 @@ function getAllBadgeStructures(assertionUrl, earnerId) {
 
         results.badge = badge
         results.issuerUrl = badge.issuer
-        return httpGet(badge.issuer)
+        return httpGet(results.issuerUrl)
       })
 
       .spread(function (res, body) {
@@ -380,6 +403,27 @@ function getAllBadgeStructures(assertionUrl, earnerId) {
       })
       .catch(reject)
   })
+}
+
+function getStream(url) {
+  const get = (url.indexOf('https') == 0)
+      ? https.get
+      : http.get
+  return new Promise(function (resolve, reject) {
+    var req = get(url, function (res) { return resolve(res) })
+    req.on('error', function (err) { return reject(err) })
+  })
+}
+
+function getAndBakeImage(url, assertion) {
+  const bake = Promise.promisify(bakery.bake)
+  return getStream(url)
+    .then(function (stream) {
+      return bake({
+        image: stream,
+        assertion: assertion,
+      })
+    })
 }
 
 function saveBadgeStructures(structs) {
@@ -432,6 +476,7 @@ function saveBadgeStructures(structs) {
         jsonUrl: structs.assertionUrl,
         earnerId: structs.earnerId,
         badgeClassId: badgeId,
+        badgeImageSlug: structs.imageSlug,
         uid: assertion.uid,
         imageUrl: assertion.image,
         badgeJSONUrl: assertion.badge,

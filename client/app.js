@@ -11,16 +11,20 @@ const routes = require('./routes/index');
 const users = require('./routes/users');
 
 const app = express();
+app.set('view engine', 'html');
+app.engine('html', require('hbs').__express);
 
 // view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'jade');
+// app.set('views', path.join(__dirname, 'views'));
+// app.set('view engine', 'jade');
 
 app.disable('x-powered-by');
 
 app.use(helmet.csp({
   'default-src': ["'self'", 'https://login.persona.org'],
   'script-src': ["'self'", 'https://login.persona.org'],
+  'style-src': ["'self'"],
+  'img-src': ["data:"],
 }));
 app.use(helmet.xframe('deny'));
 app.use(helmet.iexss());

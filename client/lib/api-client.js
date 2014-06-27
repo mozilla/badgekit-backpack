@@ -9,6 +9,7 @@ const concat = require('concat-stream');
 const createAuthHeader = require('./api-authorization');
 
 function APIClient(opts) {
+  opts = opts || {};
   this.secret = opts.secret || process.env.API_SECRET;
   this.key = opts.key || process.env.API_KEY || 'master';
   this.host = opts.host || process.env.API_HOST;
@@ -59,11 +60,27 @@ APIClient.prototype = {
       reqOpts.headers['content-length'] = Buffer(body).length;
 
     return new Promise(function (resolve, reject) {
-      const req = reqFn(reqOpts, function (res) {
+      var req;
+      try {
+        req = reqFn(reqOpts, responseHandler);
+      } catch(err) {
+        return reject(err);
+      }
+
+      if (req.body) {
+        req.write(body);
+      }
+
+      req.end();
+
+      req.on('error', reject);
+
+
+      function responseHandler(res) {
         res.setEncoding('utf8');
         res.on('error', reject);
         res.pipe(concat(function (data) {
-          var responseBody;
+              var responseBody;
 
           try {
             responseBody = JSON.parse(data);
@@ -80,16 +97,10 @@ APIClient.prototype = {
 
           return resolve(responseBody);
         }))
-      })
-
-      req.on('error', reject)
-
-      if (req.body) {
-        req.write(body);
       }
 
-      req.end();
     })
+
   },
 
   getAllBadges: function getAllBadges(opts) {

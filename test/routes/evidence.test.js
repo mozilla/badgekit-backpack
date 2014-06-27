@@ -1,9 +1,11 @@
 const test = require('tap').test
 const prepare = require('./')
 
+const TEST_USER = process.env['TEST_USER'] || 'test-user';
+
 prepare({db: true}).then(function(api) {
   test('GET /users/:userId/evidence', function (t) {
-    api.get('/users/test-user/evidence')
+    api.get('/users/' + TEST_USER + '/evidence')
       .then(function(res) {
         t.same(res.statusCode, 200, 'good status')
         t.ok(Array.isArray(res.body), 'body is an array')
@@ -18,12 +20,12 @@ prepare({db: true}).then(function(api) {
       content: Buffer('<html><a href="://example.org">oh hi</a></html>').toString('base64'),
       contentType: 'text/html'
     }
-    api.post('/users/test-user/evidence', form)
+    api.post('/users/' + TEST_USER + '/evidence', form)
       .then(function(res) {
         const privateUrl = res.body.privateUrl
         const publicUrl = res.body.publicUrl
         t.same(res.statusCode, 201)
-        t.ok(privateUrl.indexOf('/users/test-user/evidence/') > -1, 'has private url')
+        t.ok(privateUrl.indexOf('/users/' + TEST_USER + '/evidence/') > -1, 'has private url')
         t.ok(publicUrl.indexOf('/evidence/') > -1, 'has public url')
         t.end()
       })
@@ -31,7 +33,7 @@ prepare({db: true}).then(function(api) {
 
   test('GET /users/:userId/evidence/:evidenceId', function (t) {
     var content, contentType
-    api.get('/users/test-user/evidence/101')
+    api.get('/users/' + TEST_USER + '/evidence/101')
       .then(function(res) {
         t.same(res.statusCode, 200, 'has 200 OK')
         t.ok(res.body.slug, 'has slug')
@@ -54,10 +56,10 @@ prepare({db: true}).then(function(api) {
 
 
   test('DELETE /users/:userId/evidence/:evidenceId', function (t) {
-    api.del('/users/test-user/evidence/100')
+    api.del('/users/' + TEST_USER + '/evidence/100')
       .then(function(res) {
         t.same(res.statusCode, 200)
-        return api.del('/users/test-user/evidence/100')
+        return api.del('/users/' + TEST_USER + '/evidence/100')
       })
 
       .then(function(res) {

@@ -7,6 +7,8 @@ const startBadgeServer = require('./fake-badges')
 const ISSUER_KEY = 'widgets';
 const ISSUER_SECRET = 'shhsecret';
 
+const TEST_USER = process.env['TEST_USER'] || 'test-user';
+
 prepare({db: true}).then(function(api) {
   test('Basic API auth', function (t) {
 
@@ -34,11 +36,11 @@ prepare({db: true}).then(function(api) {
     startBadgeServer().then(function(server) {
       const baseUrl = server.fullUrl
       const form = {assertionUrl: baseUrl + '/assertion.json'}
-      api.post('/users/test-user/badges', form)
+      api.post('/users/' + TEST_USER + '/badges', form)
         .then(function(res) {
           const location = res.headers.location
           t.same(res.statusCode, 201, 'has HTTP 201 created')
-          t.ok(location.indexOf('/users/test-user/badges/') > -1, 'right location')
+          t.ok(location.indexOf('/users/' + TEST_USER + '/badges/') > -1, 'right location')
           server.close()
 
           const path = location.slice(location.indexOf('/users/'))

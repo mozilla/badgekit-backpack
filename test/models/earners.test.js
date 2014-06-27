@@ -3,6 +3,8 @@ const prepare = require('./')
 const EarnerData = require('../../models/earner-data')
 const Earners = require('../../models/earners')
 
+const TEST_USER = process.env['TEST_USER'] || 'test-user';
+
 prepare().then(function (db) {
   test('Sanity test', function (t) {
     const data = {id: 'some-user-identification'}
@@ -35,7 +37,7 @@ prepare().then(function (db) {
       bears: ', minus the',
       complex: '{"array":[1,2,3]}'
     }
-    const query = {id: 'test-user'}
+    const query = {id: TEST_USER}
     const options = {relationships: true}
 
     Earners.getOne(query, options)

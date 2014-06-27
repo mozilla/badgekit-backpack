@@ -10,24 +10,26 @@ const BadgeClasses = require('../../models/badge-classes')
 const EarnerBadges = require('../../models/earner-badges')
 const BadgeImages = require('../../models/badge-images')
 
+const TEST_USER = process.env['TEST_USER'] || 'test-user';
+
 module.exports = [
   [IssuerTokens, [
     {name: 'Widgets', key: 'widgets', token: 'shhsecret'},
   ]],
 
   [Earners, [
-    {id: 'test-user'},
+    {id: TEST_USER},
     {id: 'delete-me'},
   ]],
 
   [EarnerData, [
-    { earnerId: 'test-user',
+    { earnerId: TEST_USER,
       key: 'sharks',
       value: 'keep moving' },
-    { earnerId: 'test-user',
+    { earnerId: TEST_USER,
       key: 'bears',
       value: ', minus the' },
-    { earnerId: 'test-user',
+    { earnerId: TEST_USER,
       key: 'complex',
       value: '{"array":[1,2,3]}' },
 
@@ -38,19 +40,19 @@ module.exports = [
 
   [Evidence, [
     { id: 100,
-      earnerId: 'test-user',
+      earnerId: TEST_USER,
       slug: 'delete-test',
       content: Buffer('this will be deleted').toString('base64'),
       contentType: 'text/plain',
       description: 'dleltleeedleld'},
     { id: 101,
-      earnerId: 'test-user',
+      earnerId: TEST_USER,
       slug: 'hi-test',
       content: Buffer('hi').toString('base64'),
       contentType: 'text/plain',
       description: 'A simple greeting'},
     { id: 102,
-      earnerId: 'test-user',
+      earnerId: TEST_USER,
       slug: 'sup-test',
       content: Buffer('sup').toString('base64'),
       contentType: 'text/plain',
@@ -82,16 +84,6 @@ module.exports = [
       issuerJSONUrl: 'http://example.org/issuer.json' }
   ]],
 
-  [EarnerBadges, makeRows(25, function (n) {
-    return {
-      jsonUrl: 'http://example.org/' + n,
-      earnerId: 'test-user',
-      badgeClassId: 1,
-      uid: 'test-badge-' + n,
-      badgeJSONUrl: 'http://example.org/badge.json',
-    }
-  })],
-
   [BadgeImages, [
     { id: 1,
       slug: 'test',
@@ -99,6 +91,18 @@ module.exports = [
       data: fs.readFileSync(path.join(__dirname, 'test-image.png')).toString('base64'),
     }
   ]],
+
+  [EarnerBadges, makeRows(25, function (n) {
+    return {
+      jsonUrl: 'http://example.org/' + n,
+      earnerId: TEST_USER,
+      badgeClassId: 1,
+      badgeImageSlug: 'test',
+      uid: 'test-badge-' + n,
+      badgeJSONUrl: 'http://example.org/badge.json',
+    }
+  })],
+
 ]
 
 function sample(array) {

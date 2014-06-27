@@ -2,10 +2,12 @@ const test = require('tap').test
 const prepare = require('./')
 const EarnerBadges = require('../../models/earner-badges')
 
+const TEST_USER = process.env['TEST_USER'] || 'test-user';
+
 prepare().then(function (db) {
   test('Sanity test', function (t) {
     const data = {
-      earnerId: 'test-user',
+      earnerId: TEST_USER,
       jsonUrl: 'http://example.org/26',
       badgeClassId: 1,
       uid: 'some-badge-assertion',

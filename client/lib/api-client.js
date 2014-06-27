@@ -110,7 +110,7 @@ APIClient.prototype = {
     const page = opts.page || 1;
 
     const method = 'GET';
-    const path = fmt('/user/%s/badges?limit=%s&page=%s',
+    const path = fmt('/users/%s/badges?limit=%s&page=%s',
                      user, limit, page);
 
     return this.request({path: path, method: method});
@@ -122,7 +122,7 @@ APIClient.prototype = {
     const badgeId = opts.badgeId;
 
     const method = 'GET';
-    const path = fmt('/user/%s/badges/%s', user, badgeId);
+    const path = fmt('/users/%s/badges/%s', user, badgeId);
 
     return this.request({path: path, method: method});
   },
@@ -133,7 +133,7 @@ APIClient.prototype = {
     const badgeId = opts.badgeId;
 
     const method = 'DELETE';
-    const path = fmt('/user/%s/badges/%s', user, badgeId);
+    const path = fmt('/users/%s/badges/%s', user, badgeId);
 
     return this.request({path: path, method: method});
   },

@@ -12,7 +12,9 @@ router.get('/', function(req, res, next) {
   return showUserIndex.apply(null, arguments);
 });
 
-router.post('/login', processLogin)
+router.post('/login', processLogin);
+router.get('/badges/:badgeId', showOneBadge);
+router.delete('/badges/:badgeId', deleteBadge);
 
 function showLoginPage(req, res, next) {
   res.render('login.html', {
@@ -22,14 +24,19 @@ function showLoginPage(req, res, next) {
 }
 
 function showUserIndex(req, res, next) {
-  const user = req.session.user;
+  if (!req.session.user)
+    return res.redirect(303, '/');
 
-  client.getAllBadges(user)
+  const user = req.session.user;
+  console.log(user);
+
+  client.getAllBadges({user: user})
     .then(function (response) {
-      console.log(response);
+      const badges = response;
       return res.render('user/index', {
         title: 'Welcome',
         user: user,
+        badges: badges,
       });
     })
 
@@ -38,6 +45,48 @@ function showUserIndex(req, res, next) {
       return next(new Error('Error communicating with the backpack API'));
     })
 
+}
+
+function deleteBadge(req, res, next) {
+  if (!req.session.user)
+    return res.redirect(303, '/');
+
+  const user = req.session.user;
+  const badgeId = req.params.badgeId;
+  client.deleteBadge({ user: user, badgeId: badgeId })
+    .then(function (result) {
+      return res.redirect(303, '/')
+    })
+
+    .catch(function (error) {
+      if (error.statusCode === 404)
+        return res.send(404, 'Badge Not Found');
+
+      console.error(error);
+      return next(new Error('Error communicating with the backpack API'));
+    })
+}
+
+function showOneBadge(req, res, next) {
+  if (!req.session.user)
+    return res.redirect(303, '/');
+
+  const user = req.session.user;
+  const badgeId = req.params.badgeId;
+  client.getOneBadge({ user: user, badgeId: badgeId })
+    .then(function (badge) {
+      return res.render('user/badge', {
+        title: badge.badgeClass.name,
+        user: user,
+        badge: badge,
+        csrfToken: req.csrfToken(),
+      });
+    })
+
+    .catch(function (error) {
+      console.error(error);
+      return next(new Error('Error communicating with the backpack API'));
+    })
 }
 
 function processLogin(req, res, next) {

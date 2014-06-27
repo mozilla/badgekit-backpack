@@ -2,6 +2,10 @@
 
 <ul>
   {{#badges}}
-  <li>lol</li>
+  <li style="display: inline-block;">
+    <a href="/badges/{{ id }}">
+      <img src="{{ bakedBadgeUrl }}" style="width: 128px;">
+    </a>
+  </li>
   {{/badges}}
 </ul>

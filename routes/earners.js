@@ -252,7 +252,9 @@ module.exports = function earnerRoutes(server) {
       })
 
       .then(function(badges) {
-        return res.send(200, badges)
+        return res.send(200, badges.map(function (badge) {
+          return EarnerBadges.toResponse(badge, req);
+        }))
       })
 
       .catch(NotFoundError, next)
@@ -263,7 +265,10 @@ module.exports = function earnerRoutes(server) {
   function findEarnerBadge(req, res, next) {
     const earnerId = req.params.userId
     const badgeId = req.params.badgeId
-    const options = {relationships: true}
+    const options = {
+      relationships: true,
+      relationshipsDepth: 2,
+    }
     Earners.getOne({id: earnerId})
       .then(function(earner) {
         if (!earner)

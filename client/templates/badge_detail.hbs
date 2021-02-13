@@ -1,0 +1,41 @@
+<div class="badge-info">
+  <div class="badge-image">
+    <img src="{{ imageUrl }}" />
+  </div>
+
+  <div class="badge-details">
+    <h2 class="badge-name">{{ name }}</h2>
+    <p class="columns">
+      <strong>Issued by: </strong>
+      <span><a href="{{ issuerUrl }}" target="_blank">{{ issuerUrl }}</a></span>
+    </p>
+    <p class="columns">
+      <strong>Issued to: </strong>
+      <span>{{ user.user }}</span>
+    </p>
+    <p class="columns">
+      <strong>Date Issued: </strong>
+      <span>{{ issuedOn }}</span>
+    </p>
+    <div class="columns">
+      <strong>Description</strong>
+      <p>{{ description }}</p>
+    </div>
+    <p class="columns">
+      <strong>Criteria: </strong>
+      <span><a href="{{ evidenceUrl }}" target="_blank">{{ evidenceUrl }}</a></span>
+    </p>
+  </div>
+</div>
+
+<div class="badge-evidence">
+  <p><strong>Evidence</strong></p>
+  {{#each evidence.media }}
+    <div class="evidence">
+      {{{ this }}}
+    </div>
+  {{/each}}
+  <p>
+    {{ evidence.text }}
+  </p>
+</div>

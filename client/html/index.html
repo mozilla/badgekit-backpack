@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width">
+    <link rel="stylesheet" type="text/css" href="application.css">
+    <title>Backpack Client Example</title>
+  </head>
+<body>
+  <div id="container">
+    <header id="header">
+      <h1>Chicago Summer of Learning 2014</h1>
+      <nav id="header-navigation">
+        <ul>
+          <li><a href="#/learn" id="learn">Learn</a></li>
+          <li><a href="/#/badges" id="badges">Badges</a></li>
+          <li><a href="#/challenges" id="challenges">Challenges</a></li>
+          <li><a href="#/my_backpack" id="my_backpack">My Backpack <span>2</span></a></li>
+        </ul>
+      </nav>
+    </header>
+    <section id="content">
+      <header class="content-header">
+        <h2>Backpack</h2>
+      </header>
+      <div id="badge-index">
+        <div id="badge-sorter"></div>
+        <div id="badges-container"></div>
+      </div>
+      <div id="badge-show">
+        <div class="breadcrumbs">
+          <a href="javascript:void(0)">Home</a>
+          <a href="/#/badges">Badges</a>
+          <a href="javascript:void(0)">Badge Detail</a>
+        </div>
+        <div id="badge-container"></div>
+      </div>
+    </section>
+    <footer id="footer"></footer>
+  </div>
+  <script src="fake_server.js"></script>
+  <script src="fake_api.js"></script>
+  <script src="application.js"></script>
+  <script>
+    App.Dispatcher.trigger("dashboard:index", FakeAPI.users.first().omit("badges"));
+  </script>
+</body>
+</html>

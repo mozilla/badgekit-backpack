@@ -1,0 +1,15 @@
+<ul>
+  {{#if isNotFirstPage}}
+    <li><a class="previous">&laquo;</a></li>
+  {{else}}
+    <li><a class="spacer">&laquo;</a></li>
+  {{/if}}
+  {{#each pages}}
+    <li><a class="{{ className }}" data-page-number="{{ number }}">{{ number }}</a></li>
+  {{/each}}
+  {{#if isNotLastPage}}
+    <li><a class="next">&raquo;</a></li>
+  {{else}}
+    <li><a class="spacer">&raquo;</a></li>
+  {{/if}}
+</ul>

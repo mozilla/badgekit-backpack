@@ -1,0 +1,397 @@
+#container {
+  @include outer-container;
+  @include clearfix;
+  position: relative;
+  height: 100%;
+  background-color: $grey8;
+  margin-bottom: 2em;
+}
+
+#header {
+  @include span-columns(12);
+  position: relative;
+  min-height: em(125);
+  background-color: $grey5;
+
+  h1 {
+    @extend %hide-text;
+    width: 100%;
+    height: 270px;
+    background: {
+      image: url("images/csol_logo.png");
+      repeat: no-repeat;
+      position: center top;
+    }
+  }
+}
+
+#header-navigation {
+  position: absolute;
+  right: 2em;
+  bottom: 0;
+  left: 2em;
+  box-shadow: 0 0 em(8) em(3) rgba(0, 0, 0, 0.25);
+
+  ul {
+    @extend %horizontal-list;
+    text-align: center;
+    background: {
+      color: $main-navigation-bg-color;
+    }
+
+    li {
+      border-right: solid 1px $grey5;
+
+      &:last-child {
+        border: none;
+      }
+
+      a {
+        padding: .5em 1em;
+      }
+    }
+  }
+}
+
+#content {
+  @include row;
+
+  h2 {
+    text-align: center;
+  }
+}
+
+.content-header {
+  @include row;
+  padding: 2em 0;
+  border-top: solid 1px $grey5;
+  border-bottom: solid 1px $grey5;
+}
+
+#badge-filter {
+  @include row;
+  position: relative;
+
+  ul {
+    @include clearfix;
+    @include span-columns(10);
+    @include shift(1);
+    @include omega;
+    @extend %horizontal-list;
+    border: solid 1px $grey5;
+    padding: .5em;
+
+    li {
+      @include span-columns(2 of 10);
+      padding: .5em 0 0 0;
+      select,
+      input {
+        @extend %reset-spacing;
+        float: left;
+        width: 82%;
+      }
+
+      i {
+        display: inline-block;
+        padding: 3px .5em 0 0;
+        vertical-align: middle;
+        float: left;
+      }
+
+      &:last-child {
+        @include omega;
+        padding: 0;
+      }
+
+      button {
+        i {
+          @extend %reset-spacing;
+          float: none;
+          display: inline-block;
+        }
+      }
+    }
+  }
+}
+
+#badge-index {
+  @include row;
+}
+
+#badges-container {
+  @include row;
+}
+
+.badges {
+  @include row;
+  margin: 0;
+  min-height: 50px;
+  position: relative;
+
+  &.loading {
+    background: {
+      image: url("images/loading.gif");
+      repeat: no-repeat;
+      position: center center;
+    }
+  }
+
+  .badge {
+    @include span-columns(3);
+    @include clearfix;
+    padding: 1em;
+
+    &.omega {
+      @include omega;
+    }
+
+    &.divider {
+      @include fill-parent;
+      @include omega;
+      clear: both;
+      height: 1px;
+    }
+
+    .inner {
+      @include fill-parent;
+      background: {
+        color: $badge-bg-color;
+      }
+      overflow: hidden;
+      position: relative;
+      border: solid 1px $grey5;
+      box-shadow: 0px 0px 10px rgba(0, 0, 0, .5);
+      padding: 1em;
+
+      a {
+        display: block;
+        width: 187px;
+        height: 187px;
+
+        background: {
+          position: center center;
+          size: 165%;
+          repeat: no-repeat;
+        }
+
+        &:hover {
+          background-size: 100%;
+        }
+      }
+    }
+
+    .description {
+      font-size: 1em;
+      line-height: 1.25em;
+      height: 3.75em;
+    }
+
+    .actions {
+      @include fill-parent;
+      @include clearfix;
+    }
+
+    i {
+      cursor: pointer;
+    }
+
+    .button {
+      float: right;
+    }
+  }
+}
+
+.in-queue {
+  .ribbon {
+    background: {
+      color: $in-queue-ribbon-color;
+    }
+  }
+}
+
+.awarded {
+  .ribbon {
+    background: {
+      color: $awarded-ribbon-color;
+    }
+  }
+}
+
+.reviewed {
+  .ribbon {
+    background: {
+      color: $reviewed-ribbon-color;
+    }
+  }
+}
+
+.favorite {
+  .ribbon {
+    background: {
+      color: $favorite-ribbon-color;
+    }
+  }
+}
+
+.ribbon {
+  @include transform(rotate(-45deg));
+  width: 300px;
+  display: block;
+  padding-top: .25em;
+  padding-bottom: .25em;
+  position: absolute;
+  padding: .25em 0 .25em 80%;
+  left: -50%;
+  top: 21%;
+  background: {
+    color: $red;
+  }
+}
+
+.loading-mask {
+  position: absolute;
+  background: {
+    color: rgba(255, 255, 255, 0.75);
+  }
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 100;
+}
+
+.pagination {
+  @include row;
+  padding: 0 0 1em 0;
+  position: relative;
+
+  ul {
+    @extend %horizontal-list;
+    @include fill-parent;
+    text-align: center;
+  }
+
+  a {
+    display: inline-block;
+    padding: 0 .5em;
+    border: solid 1px $pagination-border-color;
+    cursor: pointer;
+    background: {
+      color: $pagination-bg-color;
+    }
+
+    &.current {
+      color: $pagination-current-color;
+      cursor: default;
+      background: {
+        color: $pagination-current-bg-color;
+      }
+    }
+
+    &.spacer {
+      color: transparent;
+      border: solid 1px transparent;
+      background: {
+        color: transparent;
+      }
+    }
+  }
+}
+
+#footer {
+  @include row;
+}
+
+#badge-show {
+  @include row;
+  display: none;
+  padding: 2em;
+}
+
+#badge-detail {
+  @include fill-parent;
+  @include clearfix;
+  position: relative;
+
+  .badge-image {
+    @include span-columns(4 of 12);
+    position: relative;
+    overflow: hidden;
+    border: solid 1px $grey5;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, .5);
+    background: {
+      color: $badge-bg-color;
+    }
+
+    .ribbon {
+      width: 520px;
+      padding-left: 71%;
+    }
+  }
+
+  .badge-info {
+    @include row;
+  }
+
+  .badge-details {
+    @include span-columns(8 of 12);
+    @include omega;
+
+    .badge-name {
+      @include fill-parent;
+      text-align: left;
+    }
+
+    .columns {
+      @include row;
+
+      strong {
+        @include span-columns(2 of 8);
+      }
+
+      span,
+      p {
+        @include span-columns(6 of 8);
+      }
+    }
+  }
+
+  .badge-evidence {
+    @include row;
+    clear: both;
+    margin-top: 2em;
+
+    .evidence {
+      @include span-columns(4);
+
+      img {
+        padding: 5px;
+        background: {
+          color: $white;
+        }
+      }
+
+      &:nth-child(3) {
+        @include omega;
+      }
+    }
+
+    p {
+      @include span-columns(12);
+      clear: both;
+      padding: 2em 0;
+    }
+  }
+}
+
+.breadcrumbs {
+  @extend %breadcrumb;
+}
+
+#badge-sorter {
+  @include span-columns(12);
+
+  select {
+    margin: 1em 0 0 1em;
+  }
+}

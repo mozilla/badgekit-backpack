@@ -56,6 +56,7 @@ EarnerBadges.toResponse = function toResponse(obj, req) {
     badgeJSONUrl: obj.badgeJSONUrl,
     evidenceUrl: obj.evidenceUrl,
     issuedOn: obj.issuedOn,
+    badgeClass: obj.badgeClass,
   }
   if (req && response.bakedBadgeUrl)
     response.bakedBadgeUrl = req.resolvePath(response.bakedBadgeUrl)

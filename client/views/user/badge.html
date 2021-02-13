@@ -1,0 +1,20 @@
+{{#badge}}
+
+<h1>{{ badgeClass.name }}</h1>
+<h2>{{ badgeClass.description }}</h2>
+<img src="{{ bakedBadgeUrl }}">
+
+<p>
+  Issued by
+  <a href="{{ badgeClass.issuer.url }}">
+    {{ badgeClass.issuer.name }}
+  </a>
+</p>
+
+<form method="post" action="?">
+  <input type="hidden" name="_method" value="DELETE">
+  <input type="hidden" name="_csrf" value="{{ ../csrfToken }}">
+  <button>Delete this badge</button>
+</form>
+
+{{/badge}}

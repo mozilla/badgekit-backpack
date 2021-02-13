@@ -1,0 +1,18 @@
+<script src="https://login.persona.org/include.js"></script>
+<link rel="stylesheet" href="/stylesheets/persona-buttons.css">
+<h1>Login</h1>
+
+<div class="wrap">
+  <a href="#" class="persona-button js-persona-login"><span>Sign in with your Email</span></a>
+</div>
+
+<form class="js-persona-form"
+      method="post"
+      data-user="{{user}}"
+      data-login-url="/login"
+      data-logout-url="/logout">
+  <input type="hidden" name="_csrf" value="{{ csrfToken }}">
+  <input class="js-persona-assertion" type="hidden" name="assertion">
+</form>
+
+<script src="/javascripts/login.js"></script>

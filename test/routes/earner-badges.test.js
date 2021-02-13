@@ -6,9 +6,11 @@ const startBadgeServer = require('./fake-badges')
 
 const getDataFromBakedBadge = Promise.promisify(bakery.debake)
 
+const TEST_USER = process.env['TEST_USER'] || 'test-user';
+
 prepare({db: true}).then(function(api) {
   test('GET /users/:userId/badges', function (t) {
-    api.get('/users/test-user/badges')
+    api.get('/users/' + TEST_USER + '/badges')
       .then(function(res) {
         t.ok(res.body.length >= 1, 'gets back some badges')
         t.end()
@@ -16,7 +18,7 @@ prepare({db: true}).then(function(api) {
   })
 
   test('GET /users/:userId/badges', function (t) {
-    api.get('/users/test-user/badges')
+    api.get('/users/' + TEST_USER + '/badges')
       .then(function(res) {
         t.ok(res.body.length >= 1, 'gets back some badges')
         t.end()
@@ -27,12 +29,12 @@ prepare({db: true}).then(function(api) {
     startBadgeServer().then(function(server) {
       const baseUrl = server.fullUrl
       const form = {assertionUrl: baseUrl + '/assertion.json'}
-      api.post('/users/test-user/badges', form)
+      api.post('/users/' + TEST_USER + '/badges', form)
         .then(function(res) {
           const location = res.headers.location
           const relativeLocation = location.slice(location.indexOf('/users/'))
           t.same(res.statusCode, 201, 'has HTTP 201 created')
-          t.ok(location.indexOf('/users/test-user/badges/') > -1, 'right location')
+          t.ok(location.indexOf('/users/' + TEST_USER + '/badges/') > -1, 'right location')
           return api.get(relativeLocation)
         })
         .then(function (res) {
@@ -52,7 +54,7 @@ prepare({db: true}).then(function(api) {
   })
 
   test('GET /users/:userId/badges/:badgeId', function (t) {
-    api.get('/users/test-user/badges/1')
+    api.get('/users/' + TEST_USER + '/badges/1')
       .then(function(res) {
         t.same(res.statusCode, 200, 'has HTTP 200')
         t.same(res.body.id, 1, 'right badge')
@@ -61,10 +63,10 @@ prepare({db: true}).then(function(api) {
   })
 
   test('DELETE /users/:userId/badges/:badgeId', function (t) {
-    api.del('/users/test-user/badges/1')
+    api.del('/users/' + TEST_USER + '/badges/1')
       .then(function(res) {
         t.same(res.statusCode, 200, 'has HTTP 200')
-        return api.get('/users/test-user/badges/1')
+        return api.get('/users/' + TEST_USER + '/badges/1')
       })
       .then(function(res) {
         t.same(res.statusCode, 404, 'should not find badge')
